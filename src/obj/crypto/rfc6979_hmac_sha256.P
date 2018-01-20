@@ -1,0 +1,8 @@
+obj/crypto/rfc6979_hmac_sha256.o: crypto/rfc6979_hmac_sha256.cpp \
+ /root/SONO-master/src/crypto/rfc6979_hmac_sha256.h \
+ /root/SONO-master/src/crypto/hmac_sha256.h \
+ /root/SONO-master/src/crypto/sha256.h
+crypto/rfc6979_hmac_sha256.cpp :
+ /root/SONO-master/src/crypto/rfc6979_hmac_sha256.h :
+ /root/SONO-master/src/crypto/hmac_sha256.h :
+ /root/SONO-master/src/crypto/sha256.h :

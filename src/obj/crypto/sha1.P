@@ -1,0 +1,4 @@
+obj/crypto/sha1.o: crypto/sha1.cpp /root/SONO-master/src/crypto/sha1.h \
+ /root/SONO-master/src/crypto/common.h
+crypto/sha1.cpp /root/SONO-master/src/crypto/sha1.h :
+ /root/SONO-master/src/crypto/common.h :
