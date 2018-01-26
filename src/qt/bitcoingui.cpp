@@ -38,7 +38,7 @@
 #include "messagepage.h"
 #include "blockbrowser.h"
 #include "forms/sidetoolbar.h"
-
+#include "transactiondesc.h"
 
 #ifdef Q_OS_MAC
 #include "macdockiconhandler.h"
@@ -93,7 +93,7 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
 {
     //resize(970, 570);
 	resize(1080, 662);
-    setWindowTitle(tr("SONO") + " - " + tr("Wallet"));
+    setWindowTitle(tr("Project SONO") + " - " + tr("Wallet"));
 #ifndef Q_OS_MAC
     qApp->setWindowIcon(QIcon(":icons/bitcoin"));
     setWindowIcon(QIcon(":icons/bitcoin"));
@@ -121,8 +121,8 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     // Create tabs
     overviewPage = new OverviewPage();
     // Create trading page
-  //  tradingDialogPage = new tradingDialog(this);
-   // tradingDialogPage->setObjectName("tradingDialog");
+    // tradingDialogPage = new tradingDialog(this);
+    // tradingDialogPage->setObjectName("tradingDialog");
 
     transactionsPage = new QWidget(this);
     QVBoxLayout *vbox = new QVBoxLayout();
@@ -144,9 +144,9 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
 
     messagePage = new MessagePage(this);
     
-    //clientcontrolPage = new ClientControlPage(this);
+    // clientcontrolPage = new ClientControlPage(this);
 
-    //multisigPage = new MultisigDialog(this);
+    // multisigPage = new MultisigDialog(this);
 
     centralStackedWidget = new QStackedWidget(this);
 
@@ -159,9 +159,9 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     centralStackedWidget->addWidget(masternodeManagerPage);
     centralStackedWidget->addWidget(messagePage);
     centralStackedWidget->addWidget(blockBrowser);
-   // centralStackedWidget->addWidget(clientcontrolPage);
-    //TradingAction->setChecked(true);
-  //  centralStackedWidget->addWidget(tradingDialogPage);
+    // centralStackedWidget->addWidget(clientcontrolPage);
+    // TradingAction->setChecked(true);
+    // centralStackedWidget->addWidget(tradingDialogPage);
 
     QWidget *centralWidget = new QWidget();
     QVBoxLayout *centralLayout = new QVBoxLayout(centralWidget);
@@ -201,15 +201,13 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     frameBlocksLayout->addStretch();
     frameBlocksLayout->addWidget(labelBlocksIcon);
     frameBlocksLayout->addStretch();
-    //frameBlocksLayout->addWidget(netLabel);
-    //frameBlocksLayout->addStretch();
-    
+    toolbar->addWidget(frameBlocks);
 
     if (GetBoolArg("-staking", true))
     {
         QTimer *timerStakingIcon = new QTimer(labelStakingIcon);
         connect(timerStakingIcon, SIGNAL(timeout()), this, SLOT(updateStakingIcon()));
-        timerStakingIcon->start(20 * 1000);
+        timerStakingIcon->start(30 * 1000);
         updateStakingIcon();
     }
 
@@ -234,9 +232,6 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
 
     statusBar()->addWidget(progressBarLabel);
     statusBar()->addWidget(progressBar);
-    statusBar()->addPermanentWidget(frameBlocks);
-    statusBar()->setObjectName("statusBar");
-    statusBar()->setStyleSheet("#statusBar { color: #101010; background-color: #f9f9f9);  }");
 
     syncIconMovie = new QMovie(fUseBlackTheme ? ":/movies/update_spinner_black" : ":/movies/update_spinner", "mng", this);
 
@@ -458,11 +453,8 @@ void BitcoinGUI::createToolBars()
     fLiteMode = GetBoolArg("-litemode", false);
 
     toolbar = new QToolBar(tr("Tabs toolbar"));
-
     toolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-
     toolbar->setContextMenuPolicy(Qt::PreventContextMenu);
-
     toolbar->setObjectName("tabs");
         toolbar->setStyleSheet("QToolButton { color: #101010; font-weight:bold;} QToolButton:hover { background-color: #c1cbcb } QToolButton:checked { background-color: #c1cbcb } QToolButton:pressed { background-color: none } #tabs { color: #101010; background-color: #f9f9f9);  }");
 
@@ -486,7 +478,7 @@ void BitcoinGUI::createToolBars()
     toolbar->addAction(historyAction);
     toolbar->addAction(addressBookAction);
     toolbar->addAction(masternodeManagerAction);
-   // toolbar->addAction(clientcontrolAction);
+    // toolbar->addAction(clientcontrolAction);
     toolbar->addAction(blockAction);
 
     if (!fLiteMode){
@@ -756,49 +748,59 @@ void BitcoinGUI::setNumBlocks(int count)
     statusBar()->setVisible(true);
 }
 
-void BitcoinGUI::message(const QString &title, const QString &message, bool modal, unsigned int style)
+void BitcoinGUI::message(const QString& title, const QString& message, unsigned int style, bool* ret)
 {
-    QString strTitle = tr("SONO") + " - ";
+    QString strTitle = tr("SONO"); // default title
     // Default to information icon
     int nMBoxIcon = QMessageBox::Information;
     int nNotifyIcon = Notificator::Information;
 
-    // Check for usage of predefined title
-    switch (style) {
-    case CClientUIInterface::MSG_ERROR:
-        strTitle += tr("Error");
-        break;
-    case CClientUIInterface::MSG_WARNING:
-        strTitle += tr("Warning");
-        break;
-    case CClientUIInterface::MSG_INFORMATION:
-        strTitle += tr("Information");
-        break;
-    default:
-        strTitle += title; // Use supplied title
+    QString msgType;
+
+    // Prefer supplied title over style based title
+    if (!title.isEmpty()) {
+        msgType = title;
+    } else {
+        switch (style) {
+        case CClientUIInterface::MSG_ERROR:
+            msgType = tr("Error");
+            break;
+        case CClientUIInterface::MSG_WARNING:
+            msgType = tr("Warning");
+            break;
+        case CClientUIInterface::MSG_INFORMATION:
+            msgType = tr("Information");
+            break;
+        default:
+            break;
+        }
     }
+    // Append title to "LUX - "
+    if (!msgType.isEmpty())
+        strTitle += " - " + msgType;
 
     // Check for error/warning icon
     if (style & CClientUIInterface::ICON_ERROR) {
         nMBoxIcon = QMessageBox::Critical;
         nNotifyIcon = Notificator::Critical;
-    }
-    else if (style & CClientUIInterface::ICON_WARNING) {
+    } else if (style & CClientUIInterface::ICON_WARNING) {
         nMBoxIcon = QMessageBox::Warning;
         nNotifyIcon = Notificator::Warning;
     }
 
     // Display message
-    if (modal) {
+    if (style & CClientUIInterface::MODAL) {
         // Check for buttons, use OK as default, if none was supplied
         QMessageBox::StandardButton buttons;
         if (!(buttons = (QMessageBox::StandardButton)(style & CClientUIInterface::BTN_MASK)))
             buttons = QMessageBox::Ok;
 
-        QMessageBox mBox((QMessageBox::Icon)nMBoxIcon, strTitle, message, buttons);
-        mBox.exec();
-    }
-    else
+        showNormalIfMinimized();
+        QMessageBox mBox((QMessageBox::Icon)nMBoxIcon, strTitle, message, buttons, this);
+        int r = mBox.exec();
+        if (ret != NULL)
+            *ret = r == QMessageBox::Ok;
+    } else
         notificator->notify((Notificator::Class)nNotifyIcon, strTitle, message);
 }
 
@@ -1270,6 +1272,7 @@ void BitcoinGUI::updateStakingIcon()
             labelStakingIcon->setToolTip(tr("Not staking"));
     }
 }
+
 
 void BitcoinGUI::detectShutdown()
 {
