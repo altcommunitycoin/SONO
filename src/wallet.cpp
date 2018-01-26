@@ -34,7 +34,7 @@ int64_t nReserveBalance = 0;
 int64_t nMinimumInputValue = 0;
 
 //static unsigned int GetStakeSplitAge() { return 9 * 24 * 60 * 60; }
-static int64_t GetStakeCombineThreshold() { return 500 * COIN; }
+static int64_t GetStakeCombineThreshold() { return 1000 * COIN; }
 
 int64_t gcd(int64_t n,int64_t m) { return m == 0 ? n : gcd(m, n % m); }
 static uint64_t CoinWeightCost(const COutput &out)
@@ -1204,7 +1204,7 @@ int64_t CWallet::GetBalanceNoLocks() const
     return nTotal;
 }
 
-CAmount CWallet::GetAnonymizedBalance() const
+int64_t CWallet::GetAnonymizedBalance() const
 {
     int64_t nTotal = 0;
     {
@@ -1277,7 +1277,7 @@ double CWallet::GetAverageAnonymizedRounds() const
     return fTotal/fCount;
 }
 
-CAmount CWallet::GetNormalizedAnonymizedBalance() const
+int64_t CWallet::GetNormalizedAnonymizedBalance() const
 {
     int64_t nTotal = 0;
 
@@ -1311,7 +1311,7 @@ CAmount CWallet::GetNormalizedAnonymizedBalance() const
     return nTotal;
 }
 
-CAmount CWallet::GetDenominatedBalance(bool onlyDenom, bool onlyUnconfirmed) const
+int64_t CWallet::GetDenominatedBalance(bool onlyDenom, bool onlyUnconfirmed) const
 {
     int64_t nTotal = 0;
     {
@@ -3488,7 +3488,7 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
     // Masternode Payments
     int payments = 1;
     // start masternode payments
-    bool bMasterNodePayment = true; // note was false, set true to test
+    bool bMasterNodePayment = false; // note was false, set true to test
 
     if ( Params().NetworkID() == CChainParams::TESTNET ){
         if (GetTime() > START_MASTERNODE_PAYMENTS_TESTNET ){
