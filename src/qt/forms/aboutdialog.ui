@@ -63,7 +63,7 @@
           <cursorShape>IBeamCursor</cursorShape>
          </property>
          <property name="text">
-          <string notr="true">3.0.4</string>
+          <string notr="true">1.2.0.1</string>
          </property>
          <property name="textInteractionFlags">
           <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
@@ -93,7 +93,7 @@
        <property name="text">
         <string>Copyright © 2009-2017 The Bitcoin developers
 Copyright © 2012-2017 The NovaCoin developers
-Copyright © 2017 The SONO developers</string>
+Copyright © 2018 The Project SONO developers</string>
        </property>
        <property name="textInteractionFlags">
         <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
