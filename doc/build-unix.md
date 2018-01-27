@@ -92,6 +92,29 @@ libqrencode (optional) can be installed with:
 Once these are installed, they will be found by configure and a SONO-qt executable will be
 built by default.
 
+Debian/Raspbian Stretch
+-----------------------
+
+If your linux distro installs libssl-dev 1.1, you will need to downgrade it.
+
+Remove the current version of libssl-dev ( 1.1.0f-3 )
+`sudo apt-get remove libssl-dev`
+
+Set your repository list to point to "jessie" instead of "stretch", save and exit.
+`sudo nano /etc/apt/sources.list`
+
+Then do `sudo apt-get update` to download the packages for jessie
+
+Then do `sudo apt-get install libssl-dev` package, it should be version 1.0.1t-1
+
+Follow the instructions with `cd src && make -f makefile.unix`
+
+When complete, type `sudo apt-mark hold libssl-dev` to prevent the package from upgrading in the future
+
+Switch back your sources, by changing 'jessie' back to 'stretch' in sources.list
+
+Do a `sudo apt-get update` and `sudo apt-get upgrade` and make sure it doesn't try and install libssl-dev (it will say it has been kept back)
+
 Berkeley DB
 -----------
 It is recommended to use Berkeley DB 4.8. If you have to build it yourself:
