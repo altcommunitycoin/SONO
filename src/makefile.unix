@@ -103,6 +103,18 @@ xCXXFLAGS=-O2 $(EXT_OPTIONS) -pthread -Wall -Wextra -Wno-ignored-qualifiers -Wfo
 # adds some defaults in front. Unfortunately, LDFLAGS=... $(LDFLAGS) does not work.
 xLDFLAGS=$(LDHARDENING) $(LDFLAGS)
 
+crypto/%.o: %.cpp
+	$(CXX) -c $(xCXXFLAGS) -MMD -MF $(@:%.o=%.d) -o $@ $<
+	@cp $(@:%.o=%.d) $(@:%.o=%.P); \
+	sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' \
+	-e '/^$$/ d' -e 's/$$/ :/' < $(@:%.o=%.d) >> $(@:%.o=%.P); \
+
+obj/skunkhash/%.o: %.c
+	$(CXX) -c $(xCXXFLAGS) -fpermissive -MMD -MF $(@:%.o=%.d) -o $@ $<
+	@cp $(@:%.o=%.d) $(@:%.o=%.P); \
+	sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' \
+	-e '/^$$/ d' -e 's/$$/ :/' < $(@:%.o=%.d) >> $(@:%.o=%.P); \
+
 OBJS= \
     obj/alert.o \
     obj/version.o \
@@ -147,13 +159,13 @@ OBJS= \
     obj/masternode.o \
     obj/rpcdarksend.o \
     obj/spork.o \
-    obj/crypto/hmac_sha256.o \
-    obj/crypto/hmac_sha512.o \
-    obj/crypto/rfc6979_hmac_sha256.o \
-    obj/crypto/ripemd160.o \
-    obj/crypto/sha1.o \
-    obj/crypto/sha256.o \
-    obj/crypto/sha512.o \
+    crypto/hmac_sha256.o \
+    crypto/hmac_sha512.o \
+    crypto/rfc6979_hmac_sha256.o \
+    crypto/ripemd160.o \
+    crypto/sha1.o \
+    crypto/sha256.o \
+    crypto/sha512.o \
     obj/smessage.o \
     obj/skunkhash/cubehash.o \
     obj/skunkhash/aes_helper.o \
