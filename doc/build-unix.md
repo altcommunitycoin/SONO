@@ -109,6 +109,13 @@ echo '12edc0df75bf9abd7f82f821795bcee50f42cb2e5f76a6a281b85732798364ef  db-4.8.3
 # -> db-4.8.30.NC.tar.gz: OK
 tar -xzvf db-4.8.30.NC.tar.gz
 
+# Update config to support newer archs
+git clone https://git.savannah.gnu.org/git/config.git
+rm -f ./db-4.8.30.NC/dist/config.guess
+rm -f ./db-4.8.30.NC/dist/config.sub
+cp ./config/config.guess ./db-4.8.30.NC/dist/config.guess
+cp ./config/config.sub ./db-4.8.30.NC/dist/config.sub
+
 # Build the library and install to our prefix
 cd db-4.8.30.NC/build_unix/
 #  Note: Do a static build so that it can be embedded into the executable, instead of having to find a .so at runtime
@@ -116,7 +123,7 @@ cd db-4.8.30.NC/build_unix/
 make install
 
 # Configure SONO Core to use our own-built instance of BDB
-cd $TRANSFER_ROOT
+cd $TRANSFER_ROOT/src/secp256k1
 ./autogen.sh
 ./configure LDFLAGS="-L${BDB_PREFIX}/lib/" CPPFLAGS="-I${BDB_PREFIX}/include/" # (other args...)
 ```
