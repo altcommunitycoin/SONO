@@ -31,7 +31,7 @@ using namespace std;
 // Settings
 int64_t nTransactionFee = MIN_TX_FEE;
 int64_t nReserveBalance = 0;
-int64_t nMinimumInputValue = 0;
+int64_t nMinimumInputValue = 400; //minimum needed value per input before staking. Except when total balance < nMinimumInputValue
 
 //static unsigned int GetStakeSplitAge() { return 9 * 24 * 60 * 60; }
 static int64_t GetStakeCombineThreshold() { return 1000 * COIN; }
@@ -1539,7 +1539,7 @@ void CWallet::AvailableCoinsForStaking(vector<COutput>& vCoins, unsigned int nSp
                 continue;
 
             for (unsigned int i = 0; i < pcoin->vout.size(); i++)
-                if (!(pcoin->IsSpent(i)) && IsMine(pcoin->vout[i]) && pcoin->vout[i].nValue >= nMinimumInputValue)
+                if (!(pcoin->IsSpent(i)) && IsMine(pcoin->vout[i]) && (pcoin->vout[i].nValue >= nMinimumInputValue || GetBalance() < nMinimumInputValue))
                     vCoins.push_back(COutput(pcoin, i, nDepth, true));
         }
     }
@@ -3423,7 +3423,7 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
                 vwtxPrev.push_back(pcoin.first);
                 txNew.vout.push_back(CTxOut(0, scriptPubKeyOut));
 
-                if(nCredit > 100 * COIN)
+                if(nCredit > 1000 * COIN)
                     txNew.vout.push_back(CTxOut(0, scriptPubKeyOut)); //split stake
                 LogPrint("coinstake", "CreateCoinStake : added kernel type=%d\n", whichType);
                 fKernelFound = true;
