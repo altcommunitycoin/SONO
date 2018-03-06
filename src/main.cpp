@@ -21,6 +21,7 @@
 #include "masternode.h"
 #include "spork.h"
 #include "smessage.h"
+#include "main.h"
 
 using namespace std;
 using namespace boost;
@@ -1910,11 +1911,210 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
         if (!vtx[1].GetCoinAge(txdb, nCoinAge))
             return error("ConnectBlock() : %s unable to get coin age for coinstake", vtx[1].GetHash().ToString());
 
-      //  int64_t nCalculatedStakeReward = GetProofOfStakeReward(pindex->pprev, nCoinAge, nFees);
 
-      //  if (nStakeReward > nCalculatedStakeReward)
-    //        return DoS(100, error("ConnectBlock() : coinstake pays too much(actual=%d vs calculated=%d)", nStakeReward, nCalculatedStakeReward));
+        int64_t nCalculatedStakeReward = GetProofOfStakeReward(pindex->pprev, nCoinAge, nFees);
+
+        // Verify PoS at block 250000
+        if (nBestHeight > 250000)
+        {
+        if (nStakeReward > nCalculatedStakeReward)
+            return DoS(100, error("ConnectBlock() : coinstake pays too much(actual=%d vs calculated=%d)", nStakeReward, nCalculatedStakeReward));
+        }
     }
+
+
+    // ----------- masternode payments V1----------- *CAUTION* It will work with V1 until Block 249999. With 250000 it starts with V2
+
+    bool MasternodePaymentsV1 = false;
+
+    if(nTime > START_MASTERNODE_PAYMENTS && nBestHeight <= 249999) MasternodePaymentsV1 = true;
+
+    if(MasternodePaymentsV1)
+    {
+        LOCK2(cs_main, mempool.cs);
+
+        CBlockIndex *pindex = pindexBest;
+        if(IsProofOfStake() && pindex != NULL){
+            if(pindex->GetBlockHash() == hashPrevBlock){
+                int64_t masternodePaymentAmount = GetMasternodePayment(pindex->nHeight+1, vtx[1].GetValueOut());
+                bool fIsInitialDownload = IsInitialBlockDownload();
+
+                // If we don't already have its previous block, skip masternode payment step
+                if (!fIsInitialDownload && pindex != NULL)
+                {
+                    bool foundPaymentAmount = false;
+                    bool foundPayee = false;
+                    bool foundPaymentAndPayee = false;
+
+                    CScript payee;
+                    if(!masternodePayments.GetBlockPayee(pindexBest->nHeight+1, payee) || payee == CScript()){
+                        foundPayee = true; //doesn't require a specific payee
+                        foundPaymentAmount = true;
+                        foundPaymentAndPayee = true;
+                        if(fDebug) { LogPrintf("CheckBlock() : Using non-specific masternode payments %d\n", pindexBest->nHeight+1); }
+                    }
+
+                    for (unsigned int i = 0; i < vtx[1].vout.size(); i++) {
+                        if(vtx[1].vout[i].nValue == masternodePaymentAmount )
+                            foundPaymentAmount = true;
+                        if(vtx[1].vout[i].scriptPubKey == payee )
+                            foundPayee = true;
+                        if(vtx[1].vout[i].nValue == masternodePaymentAmount && vtx[1].vout[i].scriptPubKey == payee)
+                            foundPaymentAndPayee = true;
+                    }
+
+                    if(!foundPaymentAndPayee) {
+                        CTxDestination address1;
+                        ExtractDestination(payee, address1);
+                        CBitcoinAddress address2(address1);
+
+                        if(fDebug) { LogPrintf("CheckBlock() : Couldn't find masternode payment(%d|%d) or payee(%d|%s) nHeight %d. \n", foundPaymentAmount, masternodePaymentAmount, foundPayee, address2.ToString().c_str(), pindexBest->nHeight+1); }
+                        return DoS(100, error("CheckBlock() : Couldn't find masternode payment or payee"));
+                    } else {
+                        if(fDebug) { LogPrintf("CheckBlock() : Found masternode payment %d\n", pindexBest->nHeight+1); }
+                    }
+                } else {
+                    if(fDebug) { LogPrintf("CheckBlock() : Is initial download, skipping masternode payment check %d\n", pindexBest->nHeight+1); }
+                }
+            } else {
+                if(fDebug) { LogPrintf("CheckBlock() : Skipping masternode payment check - nHeight %d Hash %s\n", pindexBest->nHeight+1, GetHash().ToString().c_str()); }
+            }
+        } else {
+            if(fDebug) { LogPrintf("CheckBlock() : pindex is null, skipping masternode payment check\n"); }
+        }
+    } else {
+        if(fDebug) { LogPrintf("CheckBlock() : skipping masternode payment checks\n"); }
+}
+
+
+
+    // ----------- masternode payments V2-----------
+
+        bool MasternodePaymentsV2 = false;
+
+        if(nTime > START_MASTERNODE_PAYMENTS && nBestHeight >= 250000) MasternodePaymentsV2 = true;
+
+        if(MasternodePaymentsV2 == true)
+        {
+            LOCK2(cs_main, mempool.cs);
+
+            CBlockIndex *pindex = pindexBest;
+            // "nBestHeight > 250000 && " gives users time until block 250000 to update their wallets.
+
+            if(nBestHeight > 250000 && IsProofOfStake() && pindex != NULL){
+                if(pindex->GetBlockHash() == hashPrevBlock){
+
+                    // Calculate Coin Age for Masternode Reward Calculation
+                    uint64_t nCoinAge;
+                    if (!vtx[1].GetCoinAge(txdb, nCoinAge))
+                        return error("CheckBlock-POS : %s unable to get coin age for coinstake, Can't Calculate Masternode Reward\n", vtx[1].GetHash().ToString().substr(0,10).c_str());
+                    int64_t nCalculatedStakeReward = GetProofOfStakeReward(pindex, nCoinAge, nFees);
+
+                    // Calculate expected masternodePaymentAmmount
+                    CAmount masternodePaymentAmount = GetMasternodePayment(pindex->nHeight+1, nCalculatedStakeReward);
+
+                    bool fIsInitialDownload = IsInitialBlockDownload();
+
+                    // If we don't already have its previous block, skip masternode payment step
+                    if (!fIsInitialDownload && pindex != NULL)
+                    {
+                        bool foundPaymentAmount = false;
+                        bool foundPayee = false;
+
+                        CScript payee;
+
+                        // Non specific payee
+                        if(!masternodePayments.GetBlockPayee(pindexBest->nHeight+1, payee) || payee == CScript()){
+                            foundPayee = true; //doesn't require a specific payee
+                            if(fDebug) { printf("CheckBlock-POS() : Using non-specific masternode payments %ld\n", pindexBest->nHeight+1); }
+                        }
+
+                        // Check transaction for payee and if contains masternode reward payment
+                        if(fDebug) { printf("CheckBlock-POS(): Transaction 1 Size : %i\n", vtx[1].vout.size()); }
+                        for (unsigned int i = 0; i < vtx[1].vout.size(); i++) {
+                            if(fDebug) { printf("CheckBlock-POS() : Payment vout number: %i , Amount: %ld\n",i, vtx[1].vout[i].nValue); }
+                            if(vtx[1].vout[i].nValue == masternodePaymentAmount )
+                                foundPaymentAmount = true;
+                            if(vtx[1].vout[i].scriptPubKey == payee )
+                                foundPayee = true;
+                        }
+
+                        if(!(foundPaymentAmount && foundPayee)) {
+                            CTxDestination address1;
+                            ExtractDestination(payee, address1);
+                            CBitcoinAddress address2(address1);
+                            if(fDebug) { printf("CheckBlock-POS() : Expected Masternode reward of: %ld\n", masternodePaymentAmount); }
+                            if(fDebug) { printf("CheckBlock-POS() : Couldn't find masternode payment(%d|%ld) or payee(%d|%s) nHeight %ld. \n", foundPaymentAmount, masternodePaymentAmount, foundPayee, address2.ToString().c_str(), pindexBest->nHeight+1); }
+                            return DoS(100, error("CheckBlock-POS() : Couldn't find masternode payment or payee"));
+                        } else {
+                            if(fDebug) { printf("CheckBlock-POS() : Found masternode payment %d\n", pindexBest->nHeight+1); }
+                        }
+                    } else {
+                        if(fDebug) { printf("CheckBlock-POS() : Is initial download, skipping masternode payment check %ld\n", pindexBest->nHeight+1); }
+                    }
+                } else {
+                    if(fDebug) { printf("CheckBlock-POS() : Skipping masternode payment check - nHeight %ld Hash %s\n", pindexBest->nHeight+1, GetHash().ToString().c_str()); }
+                }
+                // "nBestHeight > 250000 && " gives users time until block 250000 to update their wallets.
+            }else if(nBestHeight > 250000 && IsProofOfWork() && pindex != NULL){
+                if(pindex->GetBlockHash() == hashPrevBlock){
+                    CAmount masternodePaymentAmount = GetMasternodePayment(pindex->nHeight+1, vtx[0].GetValueOut());
+                    bool fIsInitialDownload = IsInitialBlockDownload();
+
+                    // If we don't already have its previous block, skip masternode payment step
+                    if (!fIsInitialDownload && pindex != NULL)
+                    {
+                        bool foundPaymentAmount = false;
+                        bool foundPayee = false;
+
+                        CScript payee;
+
+                        if(!masternodePayments.GetBlockPayee(pindexBest->nHeight+1, payee) || payee == CScript()){
+                            foundPayee = true; //doesn't require a specific payee
+                            if(fDebug) { printf("CheckBlock-POW() : Using non-specific masternode payments %ld\n", pindexBest->nHeight+1); }
+                        }
+
+                        // Check transaction for payee and if contains masternode reward payment
+                        if(fDebug) { printf("CheckBlock-POW(): Transaction 0 Size : %i\n", vtx[0].vout.size()); }
+                        for (unsigned int i = 0; i < vtx[0].vout.size(); i++) {
+                            if(fDebug) { printf("CheckBlock-POW() : Payment vout number: %i , Amount: %ld\n",i, vtx[0].vout[i].nValue); }
+                            if(vtx[0].vout[i].nValue == masternodePaymentAmount )
+                                foundPaymentAmount = true;
+                            if(vtx[0].vout[i].scriptPubKey == payee )
+                                foundPayee = true;
+                        }
+                        if(fDebug) {printf("CheckBlock-POW(): foundPaymentAmount= %i ; foundPayee = %i\n", foundPaymentAmount, foundPayee); }
+                        if(!(foundPaymentAmount && foundPayee)) {
+                            CTxDestination address1;
+                            ExtractDestination(payee, address1);
+                            CBitcoinAddress address2(address1);
+                            if(fDebug) { printf("CheckBlock-POW() : Expected Masternode reward of: %ld\n", masternodePaymentAmount); }
+                            if(fDebug) { printf("CheckBlock-POW() : Couldn't find masternode payment(%d|%ld) or payee(%d|%s) nHeight %d. \n", foundPaymentAmount, masternodePaymentAmount, foundPayee, address2.ToString().c_str(), pindexBest->nHeight+1); }
+                            return DoS(100, error("CheckBlock-POW() : Couldn't find masternode payment or payee"));
+                        } else {
+                            if(fDebug) { printf("CheckBlock-POW() : Found masternode payment %ld\n", pindexBest->nHeight+1); }
+                        }
+                    } else {
+                        if(fDebug) { printf("CheckBlock-POW() : Is initial download, skipping masternode payment check %ld\n", pindexBest->nHeight+1); }
+                    }
+                } else {
+                    if(fDebug) { printf("CheckBlock-POW() : Skipping masternode payment check - nHeight %ld Hash %s\n", pindexBest->nHeight+1, GetHash().ToString().c_str()); }
+                }
+            }
+
+             else {
+                if(fDebug) { printf("CheckBlock() : pindex is null, skipping masternode payment check\n"); }
+            }
+        } else {
+            if(fDebug) { printf("CheckBlock() : skipping masternode payment checks\n"); }
+    }
+
+
+
+
+
+
+
 
     // ppcoin: track money supply and mint amount info
     pindex->nMint = nValueOut - nValueIn + nFees;
@@ -2415,72 +2615,6 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
                 }
             }
         }
-
-
-
-    // ----------- masternode payments -----------
-
-    bool MasternodePayments = false;
-
-    if(nTime > START_MASTERNODE_PAYMENTS) MasternodePayments = true;
-
-    if(MasternodePayments)
-    {
-        LOCK2(cs_main, mempool.cs);
-
-        CBlockIndex *pindex = pindexBest;
-        if(IsProofOfStake() && pindex != NULL){
-            if(pindex->GetBlockHash() == hashPrevBlock){
-                int64_t masternodePaymentAmount = GetMasternodePayment(pindex->nHeight+1, vtx[1].GetValueOut());
-                bool fIsInitialDownload = IsInitialBlockDownload();
-
-                // If we don't already have its previous block, skip masternode payment step
-                if (!fIsInitialDownload && pindex != NULL)
-                {
-                    bool foundPaymentAmount = false;
-                    bool foundPayee = false;
-                    bool foundPaymentAndPayee = false;
-
-                    CScript payee;
-                    if(!masternodePayments.GetBlockPayee(pindexBest->nHeight+1, payee) || payee == CScript()){
-                        foundPayee = true; //doesn't require a specific payee
-                        foundPaymentAmount = true;
-                        foundPaymentAndPayee = true;
-                        if(fDebug) { LogPrintf("CheckBlock() : Using non-specific masternode payments %d\n", pindexBest->nHeight+1); }
-                    }
-
-                    for (unsigned int i = 0; i < vtx[1].vout.size(); i++) {
-                        if(vtx[1].vout[i].nValue == masternodePaymentAmount )
-                            foundPaymentAmount = true;
-                        if(vtx[1].vout[i].scriptPubKey == payee )
-                            foundPayee = true;
-                        if(vtx[1].vout[i].nValue == masternodePaymentAmount && vtx[1].vout[i].scriptPubKey == payee)
-                            foundPaymentAndPayee = true;
-                    }
-
-                    if(!foundPaymentAndPayee) {
-                        CTxDestination address1;
-                        ExtractDestination(payee, address1);
-                        CBitcoinAddress address2(address1);
-
-                        if(fDebug) { LogPrintf("CheckBlock() : Couldn't find masternode payment(%d|%d) or payee(%d|%s) nHeight %d. \n", foundPaymentAmount, masternodePaymentAmount, foundPayee, address2.ToString().c_str(), pindexBest->nHeight+1); }
-                        return DoS(100, error("CheckBlock() : Couldn't find masternode payment or payee"));
-                    } else {
-                        if(fDebug) { LogPrintf("CheckBlock() : Found masternode payment %d\n", pindexBest->nHeight+1); }
-                    }
-                } else {
-                    if(fDebug) { LogPrintf("CheckBlock() : Is initial download, skipping masternode payment check %d\n", pindexBest->nHeight+1); }
-                }
-            } else {
-                if(fDebug) { LogPrintf("CheckBlock() : Skipping masternode payment check - nHeight %d Hash %s\n", pindexBest->nHeight+1, GetHash().ToString().c_str()); }
-            }
-        } else {
-            if(fDebug) { LogPrintf("CheckBlock() : pindex is null, skipping masternode payment check\n"); }
-        }
-    } else {
-        if(fDebug) { LogPrintf("CheckBlock() : skipping masternode payment checks\n"); }
-    }
-
 
 
     // Check transactions
@@ -3401,11 +3535,12 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
         CAddress addrFrom;
         uint64_t nNonce = 1;
         vRecv >> pfrom->nVersion >> pfrom->nServices >> nTime >> addrMe;
+
         bool badVersion = false;
 
         if (pfrom->nVersion < MIN_PEER_PROTO_VERSION)
          badVersion = true;
-        if (nBestHeight >= 192500 && pfrom->nVersion < 70004)
+        if (nBestHeight >= 250000 && pfrom->nVersion < 70010)
          badVersion = true;
 
         if (badVersion)

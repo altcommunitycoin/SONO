@@ -1,43 +1,62 @@
-# PLEASE UPDATE Before the 27th of January 2018 to min Version 1.2.0.0!
+<p align="center">
+  <img width="128" height="128" src="https://github.com/altcommunitycoin/SONO/blob/master/src/qt/res/images/about.png">
+</p>
+
+# UPDATE before block 250.000 to min Version 1.3.0.1!
 
 The SONO project is an endeavor created and managed by young entrepreneurs who wish to spread the word of cryptocurrency and fulfill the potential decentralized currencies can bring.
 The SONO project is an aggregate of multiple teams working on an entire ecosystem that will make it possible for your average member of society to learn and understand what cryptocurrency is and what it is able to offer.
 
 
-Name: SONO Ticker: SONO Algorithm: SkunkHash Block Time: 60 seconds Proof of Work Reward: 1 Coin Proof of Stake Reward: 180% APR 
 
---
+## Coin Informations
 
-Official Links
+**Name:** Project SONO 
 
-Official Website: https://projectsono.io
+**Ticker:** SONO 
 
-Official Twitter: https://twitter.com/SonoProject
+**Algorithm:** SkunkHash 
 
-Discord Server: https://discord.gg/8bY2rjX
+**Block Time:** 60 seconds 
 
-Whitepaper: http://bit.ly/2BfwIEn
+**Proof of Work Reward:** 2 Coin 
 
---
+**Proof of Stake Reward:** 50% APR 
 
-SkunkHash Miners
 
-CCMiner for SkunkHash nVidia: https://github.com/tpruvot/ccminer/releases
 
-AMD miner: https://github.com/semtexzv/Prospector/releases
+ ## Official Links
 
---
+**Official Website:** https://projectsono.io
 
-Exchanges
+**Official Twitter:** https://twitter.com/SonoProject
 
-https://yobit.net
+**Discord Server:** https://discord.gg/8bY2rjX
 
---
+**Whitepaper:** http://bit.ly/2BfwIEn
 
-Pools http://zpools.de/
 
-http://pool.friends-master.net
 
-https://altcom.coin-miners.info/
+## SkunkHash Miners
+**NVIDIA:** https://github.com/tpruvot/ccminer/releases
 
-https://umine.org/
+**AMD:** https://github.com/semtexzv/Prospector/releases
+
+
+
+## Exchanges
+
+**Currently on hold** 
+
+
+
+## Pools 
+
+**zPools:** https://zPools.de/
+
+**AltMiner:** https://AltMiner.net
+
+**friends-master:** http://pool.friends-master.net
+
+**umine:** https://umine.org/
+
