@@ -1943,13 +1943,17 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
     {
       if(nTime > START_MASTERNODE_PAYMENTS && nBestHeight <= 399)
       MasternodePaymentsV1 = true;
+    }
 
-    } else if(nTime > START_MASTERNODE_PAYMENTS && nBestHeight <= 249999)
+    else if(nTime > START_MASTERNODE_PAYMENTS && nBestHeight <= 249999)
       MasternodePaymentsV1 = true;
 
+    //Make sure that it dont get activated accidentally
+    else MasternodePaymentsV1 = false;
 
 
-    if(MasternodePaymentsV1)
+
+    if(MasternodePaymentsV1 == true)
     {
         LOCK2(cs_main, mempool.cs);
 
@@ -2009,6 +2013,8 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
 
 
     // ----------- masternode payments V2-----------
+    // Thanks to the Denarius Team, who have written this awesome snippet.
+    // https://denarius.io/ for further informations
 
         bool MasternodePaymentsV2 = false;
 
