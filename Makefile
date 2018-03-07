@@ -2286,9 +2286,7 @@ build/miner.o: src/miner.cpp src/txdb.h \
 		src/db.h \
 		src/crypter.h \
 		src/ui_interface.h \
-		src/kernel.h \
-		src/masternode.h \
-		src/base58.h
+		src/kernel.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/miner.o src/miner.cpp
 
 build/init.o: src/init.cpp src/init.h \

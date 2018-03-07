@@ -1941,7 +1941,7 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
 
     if (TestNet())
     {
-      if(nTime > START_MASTERNODE_PAYMENTS && nBestHeight <= 1999)
+      if(nTime > START_MASTERNODE_PAYMENTS && nBestHeight <= 399)
       MasternodePaymentsV1 = true;
 
     } else if(nTime > START_MASTERNODE_PAYMENTS && nBestHeight <= 249999)
@@ -2026,9 +2026,8 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
             LOCK2(cs_main, mempool.cs);
 
             CBlockIndex *pindex = pindexBest;
-            // "nBestHeight > 250000 && " gives users time until block 250000 to update their wallets.
 
-            if(nBestHeight > 250000 && IsProofOfStake() && pindex != NULL){
+            if(IsProofOfStake() && pindex != NULL){
                 if(pindex->GetBlockHash() == hashPrevBlock){
 
                     // Calculate Coin Age for Masternode Reward Calculation
@@ -2082,8 +2081,8 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
                 } else {
                     if(fDebug) { printf("CheckBlock-POS() : Skipping masternode payment check - nHeight %ld Hash %s\n", pindexBest->nHeight+1, GetHash().ToString().c_str()); }
                 }
-                // "nBestHeight > 250000 && " gives users time until block 250000 to update their wallets.
-            }else if(nBestHeight > 250000 && IsProofOfWork() && pindex != NULL){
+
+            }else if(IsProofOfWork() && pindex != NULL){
                 if(pindex->GetBlockHash() == hashPrevBlock){
                     CAmount masternodePaymentAmount = GetMasternodePayment(pindex->nHeight+1, vtx[0].GetValueOut());
                     bool fIsInitialDownload = IsInitialBlockDownload();

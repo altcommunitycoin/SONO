@@ -33,11 +33,8 @@ int64_t nTransactionFee = MIN_TX_FEE;
 int64_t nReserveBalance = 0;
 int64_t nMinimumInputValue = 0;
 
-
-static int64_t GetStakeCombineThreshold() { return 500 * COIN; }
-//Let this beauty come back to our code
-static int64_t GetStakeSplitThreshold() { return 2 * GetStakeCombineThreshold(); }
-
+//static unsigned int GetStakeSplitAge() { return 9 * 24 * 60 * 60; }
+static int64_t GetStakeCombineThreshold() { return 1000 * COIN; }
 
 int64_t gcd(int64_t n,int64_t m) { return m == 0 ? n : gcd(m, n % m); }
 static uint64_t CoinWeightCost(const COutput &out)
@@ -202,8 +199,8 @@ bool CWallet::Unlock(const SecureString& strWalletPassphrase, bool anonymizeOnly
 
     if(!IsLocked())
     {
-	fWalletUnlockAnonymizeOnly = anonymizeOnly;
-	return true;
+    fWalletUnlockAnonymizeOnly = anonymizeOnly;
+    return true;
     }
 
     strWalletPassphraseFinal = strWalletPassphrase;
@@ -221,12 +218,12 @@ bool CWallet::Unlock(const SecureString& strWalletPassphrase, bool anonymizeOnly
                 return false;
             if (!CCryptoKeyStore::Unlock(vMasterKey))
                 return false;
-	    break;
+        break;
         }
 
-	fWalletUnlockAnonymizeOnly = anonymizeOnly;
-	UnlockStealthAddresses(vMasterKey);
-	return true;
+    fWalletUnlockAnonymizeOnly = anonymizeOnly;
+    UnlockStealthAddresses(vMasterKey);
+    return true;
     }
     return false;
 }
@@ -251,7 +248,7 @@ bool CWallet::ChangeWalletPassphrase(const SecureString& strOldWalletPassphrase,
             if (!crypter.Decrypt(pMasterKey.second.vchCryptedKey, vMasterKey))
                 return false;
             if (CCryptoKeyStore::Unlock(vMasterKey)
-		&& UnlockStealthAddresses(vMasterKey))
+        && UnlockStealthAddresses(vMasterKey))
             {
                 int64_t nStartTime = GetTimeMillis();
                 crypter.SetKeyFromPassphrase(strNewWalletPassphrase, pMasterKey.second.vchSalt, pMasterKey.second.nDeriveIterations, pMasterKey.second.nDerivationMethod);
@@ -870,7 +867,7 @@ void CWalletTx::GetAmounts(list<pair<CTxDestination, int64_t> >& listReceived,
         if (nDebit > 0)
         {
             // Don't report 'change' txouts
-	    // SONONOTE: CoinControl possible fix related... with HD wallet we need to report change?
+        // SONONOTE: CoinControl possible fix related... with HD wallet we need to report change?
             //if (pwallet->IsChange(txout))
             //    continue;
             fIsMine = pwallet->IsMine(txout);
@@ -1221,14 +1218,14 @@ int64_t CWallet::GetAnonymizedBalance() const
                 int nDepth = pcoin->GetDepthInMainChain();
 
                 for (unsigned int i = 0; i < pcoin->vout.size(); i++) {
-		//isminetype mine = IsMine(pcoin->vout[i]);
-		bool mine = IsMine(pcoin->vout[i]);
+        //isminetype mine = IsMine(pcoin->vout[i]);
+        bool mine = IsMine(pcoin->vout[i]);
                     //COutput out = COutput(pcoin, i, nDepth, (mine & ISMINE_SPENDABLE) != ISMINE_NO);
-		COutput out = COutput(pcoin, i, nDepth, mine);
+        COutput out = COutput(pcoin, i, nDepth, mine);
                     CTxIn vin = CTxIn(out.tx->GetHash(), out.i);
 
                     //if(IsSpent(out.tx->GetHash(), i) || !IsMine(pcoin->vout[i]) || !IsDenominated(vin)) continue;
-		    if(pcoin->IsSpent(i) || !IsMine(pcoin->vout[i]) || !IsDenominated(vin)) continue;
+            if(pcoin->IsSpent(i) || !IsMine(pcoin->vout[i]) || !IsDenominated(vin)) continue;
 
                     int rounds = GetInputluxsendRounds(vin);
                     if(rounds >= nDarksendRounds){
@@ -1258,14 +1255,14 @@ double CWallet::GetAverageAnonymizedRounds() const
                 int nDepth = pcoin->GetDepthInMainChain();
 
                 for (unsigned int i = 0; i < pcoin->vout.size(); i++) {
-		//isminetype mine = IsMine(pcoin->vout[i]);
-		    bool mine = IsMine(pcoin->vout[i]);
+        //isminetype mine = IsMine(pcoin->vout[i]);
+            bool mine = IsMine(pcoin->vout[i]);
                     //COutput out = COutput(pcoin, i, nDepth, (mine & ISMINE_SPENDABLE) != ISMINE_NO);
-		    COutput out = COutput(pcoin, i, nDepth, mine);
+            COutput out = COutput(pcoin, i, nDepth, mine);
                     CTxIn vin = CTxIn(out.tx->GetHash(), out.i);
 
                     //if(IsSpent(out.tx->GetHash(), i) || !IsMine(pcoin->vout[i]) || !IsDenominated(vin)) continue;
-		    if(pcoin->IsSpent(i) || !IsMine(pcoin->vout[i]) || !IsDenominated(vin)) continue;
+            if(pcoin->IsSpent(i) || !IsMine(pcoin->vout[i]) || !IsDenominated(vin)) continue;
 
                     int rounds = GetInputluxsendRounds(vin);
                     fTotal += (float)rounds;
@@ -1295,14 +1292,14 @@ int64_t CWallet::GetNormalizedAnonymizedBalance() const
                 int nDepth = pcoin->GetDepthInMainChain();
 
                 for (unsigned int i = 0; i < pcoin->vout.size(); i++) {
-		    //isminetype mine = IsMine(pcoin->vout[i]);
-		    bool mine = IsMine(pcoin->vout[i]);
+            //isminetype mine = IsMine(pcoin->vout[i]);
+            bool mine = IsMine(pcoin->vout[i]);
                     //COutput out = COutput(pcoin, i, nDepth, (mine & ISMINE_SPENDABLE) != ISMINE_NO);
-		    COutput out = COutput(pcoin, i, nDepth, mine);
+            COutput out = COutput(pcoin, i, nDepth, mine);
                     CTxIn vin = CTxIn(out.tx->GetHash(), out.i);
 
                     //if(IsSpent(out.tx->GetHash(), i) || !IsMine(pcoin->vout[i]) || !IsDenominated(vin)) continue;
-		    if(pcoin->IsSpent(i) || !IsMine(pcoin->vout[i]) || !IsDenominated(vin)) continue;
+            if(pcoin->IsSpent(i) || !IsMine(pcoin->vout[i]) || !IsDenominated(vin)) continue;
 
                     int rounds = GetInputluxsendRounds(vin);
                     nTotal += pcoin->vout[i].nValue * rounds / nDarksendRounds;
@@ -1333,13 +1330,13 @@ int64_t CWallet::GetDenominatedBalance(bool onlyDenom, bool onlyUnconfirmed) con
 
             for (unsigned int i = 0; i < pcoin->vout.size(); i++)
             {
-				//isminetype mine = IsMine(pcoin->vout[i]);
-		//bool mine = IsMine(pcoin->vout[i]);
+                //isminetype mine = IsMine(pcoin->vout[i]);
+        //bool mine = IsMine(pcoin->vout[i]);
                 //COutput out = COutput(pcoin, i, nDepth, (mine & ISMINE_SPENDABLE) != ISMINE_NO);
-		//COutput out = COutput(pcoin, i, nDepth, mine);
+        //COutput out = COutput(pcoin, i, nDepth, mine);
 
                 //if(IsSpent(out.tx->GetHash(), i)) continue;
-		if(pcoin->IsSpent(i)) continue;
+        if(pcoin->IsSpent(i)) continue;
                 if(!IsMine(pcoin->vout[i])) continue;
                 if(onlyDenom != IsDenominatedAmount(pcoin->vout[i].nValue)) continue;
 
@@ -1436,15 +1433,15 @@ void CWallet::AvailableCoins(vector<COutput>& vCoins, bool fOnlyConfirmed, const
                 }
                 if(!found) continue;
 
-				//isminetype mine = IsMine(pcoin->vout[i]);
-		bool mine = IsMine(pcoin->vout[i]);
+                //isminetype mine = IsMine(pcoin->vout[i]);
+        bool mine = IsMine(pcoin->vout[i]);
 
                 //if (!(IsSpent(wtxid, i)) && mine != ISMINE_NO &&
                 //    !IsLockedCoin((*it).first, i) && pcoin->vout[i].nValue > 0 &&
                 //    (!coinControl || !coinControl->HasSelected() || coinControl->IsSelected((*it).first, i)))
                 //        vCoins.push_back(COutput(pcoin, i, nDepth, (mine & ISMINE_SPENDABLE) != ISMINE_NO));
-		//if (!(IsSpent(wtxid, i)) && mine &&
-		if (!(pcoin->IsSpent(i)) && mine &&
+        //if (!(IsSpent(wtxid, i)) && mine &&
+        if (!(pcoin->IsSpent(i)) && mine &&
                     !IsLockedCoin((*it).first, i) && pcoin->vout[i].nValue > 0 &&
                     (!coinControl || !coinControl->HasSelected() || coinControl->IsSelected((*it).first, i)))
                         vCoins.push_back(COutput(pcoin, i, nDepth, mine));
@@ -1503,15 +1500,15 @@ void CWallet::AvailableCoinsMN(vector<COutput>& vCoins, bool fOnlyConfirmed, con
                 }
                 if(!found) continue;
 
-				//isminetype mine = IsMine(pcoin->vout[i]);
-		bool mine = IsMine(pcoin->vout[i]);
+                //isminetype mine = IsMine(pcoin->vout[i]);
+        bool mine = IsMine(pcoin->vout[i]);
 
                 //if (!(IsSpent(wtxid, i)) && mine != ISMINE_NO &&
                 //    !IsLockedCoin((*it).first, i) && pcoin->vout[i].nValue > 0 &&
                 //    (!coinControl || !coinControl->HasSelected() || coinControl->IsSelected((*it).first, i)))
                 //        vCoins.push_back(COutput(pcoin, i, nDepth, (mine & ISMINE_SPENDABLE) != ISMINE_NO));
-		//if (!(IsSpent(wtxid, i)) && mine &&
-		if (!(pcoin->IsSpent(i)) &&
+        //if (!(IsSpent(wtxid, i)) && mine &&
+        if (!(pcoin->IsSpent(i)) &&
                     !IsLockedCoin((*it).first, i) && pcoin->vout[i].nValue > 0 &&
                     (!coinControl || !coinControl->HasSelected() || coinControl->IsSelected((*it).first, i)))
                         vCoins.push_back(COutput(pcoin, i, nDepth, mine));
@@ -2273,16 +2270,16 @@ int CWallet::CountInputsWithAmount(int64_t nInputAmount)
                 int nDepth = pcoin->GetDepthInMainChain();
 
                 for (unsigned int i = 0; i < pcoin->vout.size(); i++) {
-					//isminetype mine = IsMine(pcoin->vout[i]);
-		    bool mine = IsMine(pcoin->vout[i]);
+                    //isminetype mine = IsMine(pcoin->vout[i]);
+            bool mine = IsMine(pcoin->vout[i]);
                     //COutput out = COutput(pcoin, i, nDepth, (mine & ISMINE_SPENDABLE) != ISMINE_NO);
-		    COutput out = COutput(pcoin, i, nDepth, mine);
+            COutput out = COutput(pcoin, i, nDepth, mine);
                     CTxIn vin = CTxIn(out.tx->GetHash(), out.i);
 
                     if(out.tx->vout[out.i].nValue != nInputAmount) continue;
                     if(!IsDenominatedAmount(pcoin->vout[i].nValue)) continue;
                     //if(IsSpent(out.tx->GetHash(), i) || !IsMine(pcoin->vout[i]) || !IsDenominated(vin)) continue;
-		    if(pcoin->IsSpent(i) || !IsMine(pcoin->vout[i]) || !IsDenominated(vin)) continue;
+            if(pcoin->IsSpent(i) || !IsMine(pcoin->vout[i]) || !IsDenominated(vin)) continue;
 
                     nTotal++;
                 }
@@ -2491,7 +2488,7 @@ bool CWallet::CreateTransaction(const vector<pair<CScript, int64_t> >& vecSend, 
                     // Insert change txn at random position:
                     vector<CTxOut>::iterator position = wtxNew.vout.begin()+GetRandInt(wtxNew.vout.size());
 
-		    // -- don't put change output between value and narration outputs
+            // -- don't put change output between value and narration outputs
                     if (position > wtxNew.vout.begin() && position < wtxNew.vout.end())
                     {
                         while (position > wtxNew.vout.begin())
@@ -2503,7 +2500,7 @@ bool CWallet::CreateTransaction(const vector<pair<CScript, int64_t> >& vecSend, 
                     };
 
                     wtxNew.vout.insert(position, CTxOut(nChange, scriptChange));
-		    nChangePos = std::distance(wtxNew.vout.begin(), position);
+            nChangePos = std::distance(wtxNew.vout.begin(), position);
                 }
                 else
                     reservekey.ReturnKey();
@@ -2785,7 +2782,7 @@ bool CWallet::UnlockStealthAddresses(const CKeyingMaterial& vMasterKeyIn)
         CKey ckey;
 
         try {
-	    ckey.Set(vchSecret.begin(), vchSecret.end(), true);
+        ckey.Set(vchSecret.begin(), vchSecret.end(), true);
             //ckey.SetSecret(vchSecret, true);
         } catch (std::exception& e) {
             printf("ckey.SetSecret() threw: %s.\n", e.what());
@@ -3218,7 +3215,7 @@ bool CWallet::FindStealthTransactions(const CTransaction& tx, mapValue_t& mapNar
                     CKey ckey;
 
                     try {
-		 	ckey.Set(vchSecret.begin(), vchSecret.end(), true);
+            ckey.Set(vchSecret.begin(), vchSecret.end(), true);
                         //ckey.SetSecret(vchSecret, true);
                     } catch (std::exception& e) {
                         printf("ckey.SetSecret() threw: %s.\n", e.what());
@@ -3453,15 +3450,9 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
             // Stop adding more inputs if already too many inputs
             if (txNew.vin.size() >= 100)
                 break;
-
-            //Revert to Split Combine of 1000
-
-            /*
             // Stop adding more inputs if value is already pretty significant
             if (nCredit >= GetStakeCombineThreshold())
                 break;
-            */
-
             // Stop adding inputs if reached reserve limit
             if (nCredit + pcoin.first->vout[pcoin.second].nValue > nBalance - nReserveBalance)
                 break;
@@ -3492,9 +3483,6 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
 
         nCredit += nReward;
     }
-
-    if (nCredit >= GetStakeSplitThreshold())
-        txNew.vout.push_back(CTxOut(0, txNew.vout[1].scriptPubKey)); //split stake
 
 
     // Masternode Payments
@@ -4486,7 +4474,8 @@ bool CWallet::AddAdrenalineNodeConfig(CAdrenalineNodeConfig nodeConfig)
 {
     bool rv = CWalletDB(strWalletFile).WriteAdrenalineNodeConfig(nodeConfig.sAlias, nodeConfig);
     if(rv)
-	uiInterface.NotifyAdrenalineNodeChanged(nodeConfig);
+    uiInterface.NotifyAdrenalineNodeChanged(nodeConfig);
 
     return rv;
 }
+
