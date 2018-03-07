@@ -1914,20 +1914,40 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
 
         int64_t nCalculatedStakeReward = GetProofOfStakeReward(pindex->pprev, nCoinAge, nFees);
 
+
+        // I am sure that can be done much smoother
+        if (TestNet())
+        {
+            // Verify Testnet PoS at block 2000
+            if (nBestHeight >= 2000)
+            {
+            if (nStakeReward > nCalculatedStakeReward)
+                return DoS(100, error("ConnectBlock() : coinstake pays too much(actual=%d vs calculated=%d)", nStakeReward, nCalculatedStakeReward));
+            }
+
         // Verify PoS at block 250000
-        if (nBestHeight > 250000)
+        } else if (nBestHeight > 250000)
         {
         if (nStakeReward > nCalculatedStakeReward)
             return DoS(100, error("ConnectBlock() : coinstake pays too much(actual=%d vs calculated=%d)", nStakeReward, nCalculatedStakeReward));
         }
-    }
+
+        }
 
 
     // ----------- masternode payments V1----------- *CAUTION* It will work with V1 until Block 249999. With 250000 it starts with V2
 
     bool MasternodePaymentsV1 = false;
 
-    if(nTime > START_MASTERNODE_PAYMENTS && nBestHeight <= 249999) MasternodePaymentsV1 = true;
+    if (TestNet())
+    {
+      if(nTime > START_MASTERNODE_PAYMENTS && nBestHeight <= 1999)
+      MasternodePaymentsV1 = true;
+
+    } else if(nTime > START_MASTERNODE_PAYMENTS && nBestHeight <= 249999)
+      MasternodePaymentsV1 = true;
+
+
 
     if(MasternodePaymentsV1)
     {
@@ -1992,7 +2012,14 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
 
         bool MasternodePaymentsV2 = false;
 
-        if(nTime > START_MASTERNODE_PAYMENTS && nBestHeight >= 250000) MasternodePaymentsV2 = true;
+        if (TestNet())
+        {
+          if(nTime > START_MASTERNODE_PAYMENTS && nBestHeight >= 2000)
+          MasternodePaymentsV2 = true;
+
+        } else if(nTime > START_MASTERNODE_PAYMENTS && nBestHeight >= 250000)
+          MasternodePaymentsV2 = true;
+
 
         if(MasternodePaymentsV2 == true)
         {

@@ -21,8 +21,34 @@ struct SeedSpec6 {
 
 #include "chainparamsseeds.h"
 
+
+void MineGenesis(CBlock genesis){
+    // This will figure out a valid hash and Nonce if you're creating a different genesis block:
+    uint256 hashTarget = CBigNum().SetCompact(Params().ProofOfWorkLimit().GetCompact()).getuint256();
+    printf("Target: %s\n", hashTarget.GetHex().c_str());
+    uint256 newhash = genesis.GetHash();
+    uint256 besthash;
+    memset(&besthash,0xFF,32);
+    while (newhash > hashTarget) {
+        ++genesis.nNonce;
+        if (genesis.nNonce == 0){
+            printf("NONCE WRAPPED, incrementing time");
+            ++genesis.nTime;
+        }
+    newhash = genesis.GetHash();
+    if(newhash < besthash){
+        besthash=newhash;
+        printf("New best: %s\n", newhash.GetHex().c_str());
+    }
+    }
+    printf("Found Genesis, Nonce: %ld, Hash: %s\n", genesis.nNonce, genesis.GetHash().GetHex().c_str());
+    printf("Gensis Hash Merkle: %s\n", genesis.hashMerkleRoot.ToString().c_str());
+}
+
+
+
 // Main network
-// Follow my guide to generate new genesis block
+
 
 // Convert the pnSeeds6 array into usable address objects.
 static void convertSeed6(std::vector<CAddress> &vSeedsOut, const SeedSpec6 *data, unsigned int count)
@@ -48,7 +74,7 @@ public:
         // The message start string is designed to be unlikely to occur in normal data.
         // The characters are rarely used upper ASCII, not valid as UTF-8, and produce
         // a large 4-byte int at any alignment.
-         pchMessageStart[0] = 0x4a;
+        pchMessageStart[0] = 0x4a;
         pchMessageStart[1] = 0x12;
         pchMessageStart[2] = 0x22;
         pchMessageStart[3] = 0x14;
@@ -76,7 +102,7 @@ public:
         genesis.nBits    = 0x1e0fffff;
         genesis.nNonce   = 718550;
 
-         hashGenesisBlock = genesis.GetHash();
+        hashGenesisBlock = genesis.GetHash();
         assert(hashGenesisBlock == uint256("0x00000f14896ba98013ed07e0ecf6e29b360a20898aab5c23238fd08c17ac1b10"));
         assert(genesis.hashMerkleRoot == uint256("0xcdcd7108ef39db12a5e03b30ef2790ac6ffb65436ea0beeb4c83adb72d79625b"));
 
@@ -127,25 +153,34 @@ public:
         // The message start string is designed to be unlikely to occur in normal data.
         // The characters are rarely used upper ASCII, not valid as UTF-8, and produce
         // a large 4-byte int at any alignment.
-        pchMessageStart[0] = 0x54;
-        pchMessageStart[1] = 0xac;
-        pchMessageStart[2] = 0xb3;
-        pchMessageStart[3] = 0xaa;
+        pchMessageStart[0] = 0x4a;
+        pchMessageStart[1] = 0x12;
+        pchMessageStart[2] = 0x22;
+        pchMessageStart[3] = 0x14;
         bnProofOfWorkLimit = CBigNum(~uint256(0) >> 16);
-        vAlertPubKey = ParseHex("");
+        vAlertPubKey = ParseHex("04e57adfbcdfad7c8131a7c77323fab6c1fdd44b0bdc2f969142d62b33246f37493babd68265e9e277a24fe92544596b5dad2df74763cc75c20bfde6e95603e714");
         nDefaultPort = 29844;
         nRPCPort = 28844;
         strDataDir = "testnet";
 
         // Modify the testnet genesis block so the timestamp is valid for a later start.
-        genesis.nBits  = bnProofOfWorkLimit.GetCompact();;
-        genesis.nTime    = 1504886750;
-        genesis.nNonce = 0; //
+        genesis.hashPrevBlock = 0;
+        genesis.hashMerkleRoot = genesis.BuildMerkleTree();
+        genesis.nVersion = 1;
+        genesis.nTime    = 1504894760;
+        genesis.nBits    = 0x1e0fffff;
+        genesis.nNonce   = 718550;
 
-        //assert(hashGenesisBlock == uint256("0x")); //
+//        MineGenesis(genesis);
 
-        vFixedSeeds.clear();
-        vSeeds.clear();
+        hashGenesisBlock = genesis.GetHash();
+        assert(hashGenesisBlock == uint256("0x00000f14896ba98013ed07e0ecf6e29b360a20898aab5c23238fd08c17ac1b10"));
+        assert(genesis.hashMerkleRoot == uint256("0xcdcd7108ef39db12a5e03b30ef2790ac6ffb65436ea0beeb4c83adb72d79625b"));
+
+
+
+        vSeeds.push_back(CDNSSeedData("188.68.56.33", "188.68.56.33"));
+
 
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,65);
         base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,192);

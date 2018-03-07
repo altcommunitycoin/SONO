@@ -253,6 +253,7 @@ static const CRPCCommand vRPCCommands[] =
     { "masternode",             &masternode,             true,      false,      true },
 
 #ifdef ENABLE_WALLET
+    { "setgenerate",            &setgenerate,            true,      false,     true },
     { "getmininginfo",          &getmininginfo,          true,      false,     false },
     { "getstakinginfo",         &getstakinginfo,         true,      false,     false },
     { "getnewaddress",          &getnewaddress,          true,      false,     true },
