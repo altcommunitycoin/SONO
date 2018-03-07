@@ -2014,7 +2014,7 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
 
         if (TestNet())
         {
-          if(nTime > START_MASTERNODE_PAYMENTS && nBestHeight >= 2000)
+          if(nTime > START_MASTERNODE_PAYMENTS && nBestHeight >= 500)
           MasternodePaymentsV2 = true;
 
         } else if(nTime > START_MASTERNODE_PAYMENTS && nBestHeight >= 250000)
