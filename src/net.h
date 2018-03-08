@@ -100,11 +100,30 @@ enum {
     MSG_MASTERNODE_WINNER
 };
 
+/** Thread types */
+enum threadId
+{
+    THREAD_SOCKETHANDLER,
+    THREAD_OPENCONNECTIONS,
+    THREAD_MESSAGEHANDLER,
+    THREAD_RPCLISTENER,
+    THREAD_UPNP,
+    THREAD_DNSSEED,
+    THREAD_ADDEDCONNECTIONS,
+    THREAD_DUMPADDRESS,
+    THREAD_RPCHANDLER,
+    THREAD_STAKE_MINER,
+
+    THREAD_MAX
+};
+
+
+
 extern bool fDiscover;
 extern uint64_t nLocalServices;
 extern uint64_t nLocalHostNonce;
 extern CAddrMan addrman;
-
+extern boost::array<int, THREAD_MAX> vnThreadsRunning;
 extern std::vector<CNode*> vNodes;
 extern CCriticalSection cs_vNodes;
 extern std::map<CInv, CDataStream> mapRelay;

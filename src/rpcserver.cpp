@@ -314,7 +314,7 @@ static const CRPCCommand vRPCCommands[] =
     { "repairwallet",           &repairwallet,           false,     true,      true },
     { "resendtx",               &resendtx,               false,     true,      true },
     { "makekeypair",            &makekeypair,            false,     true,      false },
-    { "checkkernel",            &checkkernel,            true,      false,     true },
+//  { "checkkernel",            &checkkernel,            true,      false,     true },
     { "getnewstealthaddress",   &getnewstealthaddress,   false,  false, true},
     { "liststealthaddresses",   &liststealthaddresses,   false,  false, true},
     { "importstealthaddress",   &importstealthaddress,   false,  false, true},
