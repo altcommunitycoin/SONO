@@ -11,6 +11,7 @@
 #include "init.h"
 #include "miner.h"
 #include "kernel.h"
+#include "masternode.h"
 
 #include <boost/assign/list_of.hpp>
 
@@ -46,7 +47,13 @@ Value getsubsidy(const Array& params, bool fHelp)
             "getsubsidy [nTarget]\n"
             "Returns proof-of-work subsidy value for the specified value of target.");
 
-    return (uint64_t)GetProofOfWorkReward(0);
+    int nShowHeight;
+    if (params.size() > 0)
+        nShowHeight = atoi(params[0].get_str());
+    else
+        nShowHeight = nBestHeight+1; // block currently being solved
+
+    return (uint64_t)GetProofOfWorkReward(nShowHeight, 0);
 }
 
 Value getstakesubsidy(const Array& params, bool fHelp)
@@ -97,7 +104,7 @@ Value getmininginfo(const Array& params, bool fHelp)
     diff.push_back(Pair("search-interval",      (int)nLastCoinStakeSearchInterval));
     obj.push_back(Pair("difficulty",    diff));
 
-    obj.push_back(Pair("blockvalue",    (uint64_t)GetProofOfWorkReward(0)));
+    obj.push_back(Pair("blockvalue",    (uint64_t)GetProofOfWorkReward(nBestHeight+1, 0)));
     obj.push_back(Pair("netmhashps",     GetPoWMHashPS()));
     obj.push_back(Pair("netstakeweight", GetPoSKernelPS()));
     obj.push_back(Pair("errors",        GetWarnings("statusbar")));
@@ -619,6 +626,8 @@ Value getblocktemplate(const Array& params, bool fHelp)
         aMutable.push_back("prevblock");
     }
 
+    CScript payee;
+
     Object result;
     result.push_back(Pair("version", pblock->nVersion));
     result.push_back(Pair("previousblockhash", pblock->hashPrevBlock.GetHex()));
@@ -634,6 +643,52 @@ Value getblocktemplate(const Array& params, bool fHelp)
     result.push_back(Pair("curtime", (int64_t)pblock->nTime));
     result.push_back(Pair("bits", strprintf("%08x", pblock->nBits)));
     result.push_back(Pair("height", (int64_t)(pindexPrev->nHeight+1)));
+
+
+
+    // ---- Masternode info ---
+
+    bool bMasternodePayments = false;
+
+    if(TestNet){
+        if(pindexPrev->nHeight+1 >= 500) bMasternodePayments = true;
+    } else {
+        if(pindexPrev->nHeight+1 >= 250000) bMasternodePayments = true;
+    }
+    if(fDebug) { printf("GetBlockTemplate(): Masternode Payments : %i\n", bMasternodePayments); }
+
+    if(!masternodePayments.GetBlockPayee(pindexPrev->nHeight+1, payee)){
+        //no masternode detected
+        int winningNode = GetCurrentMasterNode(1);
+        if(winningNode >= 0){
+            payee.SetDestination(vecMasternodes[winningNode].pubkey.GetID());
+        } else {
+            printf("getblocktemplate() RPC: Failed to detect masternode to pay, burning coins\n");
+            // masternodes are in-eligible for payment, burn the coins in-stead
+            std::string burnAddress;
+            if (TestNet) burnAddress = "TRCryptoLifeDotNetBurnAddrXXX6gvik";
+            else burnAddress = "AHCryptoLifeDotNetBurnAddrXXainVwi";
+            CBitcoinAddress burnDestination;
+            burnDestination.SetString(burnAddress);
+            payee = GetScriptForDestination(burnDestination.Get());
+        }
+    }
+    printf("getblock : payee = %i, bMasternode = %i\n",payee != CScript(),bMasternodePayments);
+    if(payee != CScript() && bMasternodePayments){
+        CTxDestination address1;
+        ExtractDestination(payee, address1);
+        CBitcoinAddress address2(address1);
+        result.push_back(Pair("payee", address2.ToString().c_str()));
+        result.push_back(Pair("payee_amount", (int64_t)GetMasternodePayment(pindexPrev->nHeight+1, pblock->vtx[0].GetValueOut())));
+    }
+    else {
+        result.push_back(Pair("payee", ""));
+        result.push_back(Pair("payee_amount", ""));
+    }
+
+    result.push_back(Pair("masternode_payments", bMasternodePayments));
+    result.push_back(Pair("enforce_masternode_payments", bMasternodePayments));
+
 
     return result;
 }

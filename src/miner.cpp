@@ -7,6 +7,7 @@
 #include "txdb.h"
 #include "miner.h"
 #include "kernel.h"
+#include "masternode.h"
 
 using namespace std;
 
@@ -111,6 +112,7 @@ CBlock* CreateNewBlock(CReserveKey& reservekey, bool fProofOfStake, int64_t* pFe
     CBlockIndex* pindexPrev = pindexBest;
     int nHeight = pindexPrev->nHeight + 1;
 
+    int payments = 1;
     // Create coinbase tx
     CTransaction txNew;
     txNew.vin.resize(1);
@@ -342,11 +344,21 @@ CBlock* CreateNewBlock(CReserveKey& reservekey, bool fProofOfStake, int64_t* pFe
         nLastBlockTx = nBlockTx;
         nLastBlockSize = nBlockSize;
 
-        if (fDebug && GetBoolArg("-printpriority", false))
-            LogPrintf("CreateNewBlock(): total size %u\n", nBlockSize);
+        int64_t blockValue = GetProofOfWorkReward(nHeight, nFees);
+        int64_t masternodePayment = GetMasternodePayment(pindexPrev->nHeight+1, blockValue);
 
-        if (!fProofOfStake)
-            pblock->vtx[0].vout[0].nValue = GetProofOfWorkReward(nFees);
+        //create masternode payment
+        if(payments > 1){
+            pblock->vtx[0].vout[payments-1].nValue = masternodePayment;
+            blockValue -= masternodePayment;
+        }
+
+        if (fDebug && GetBoolArg("-printpriority"))
+            printf("CreateNewBlock(): total size %"PRIu64"\n", nBlockSize);
+
+        if (!fProofOfStake){
+            pblock->vtx[0].vout[0].nValue = blockValue;
+        }
 
         if (pFees)
             *pFees = nFees;
@@ -701,5 +713,6 @@ void GenerateBitcoins(bool fGenerate, CWallet* pwallet, int nThreads)
     minerThreads = new boost::thread_group();
     for (int i = 0; i < nThreads; i++)
     minerThreads->create_thread(boost::bind(&BitcoinMiner, pwallet));
+
 }
 #endif
