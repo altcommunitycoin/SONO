@@ -99,6 +99,18 @@ Value ValueFromAmount(int64_t amount)
 }
 
 
+std::string HexBits(unsigned int nBits)
+{
+    union {
+        int32_t nBits;
+        char cBits[4];
+    } uBits;
+    uBits.nBits = htonl((int32_t)nBits);
+    return HexStr(BEGIN(uBits.cBits), END(uBits.cBits));
+}
+
+
+
 //
 // Utilities: convert hex-encoded Values
 // (throws error if not hex).

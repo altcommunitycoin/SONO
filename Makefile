@@ -2286,7 +2286,9 @@ build/miner.o: src/miner.cpp src/txdb.h \
 		src/db.h \
 		src/crypter.h \
 		src/ui_interface.h \
-		src/kernel.h
+		src/kernel.h \
+		src/masternode.h \
+		src/base58.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/miner.o src/miner.cpp
 
 build/init.o: src/init.cpp src/init.h \
@@ -3360,7 +3362,9 @@ build/rpcmining.o: src/rpcmining.cpp src/rpcserver.h \
 		src/crypter.h \
 		src/ui_interface.h \
 		src/miner.h \
-		src/kernel.h
+		src/kernel.h \
+		src/masternode.h \
+		src/base58.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/rpcmining.o src/rpcmining.cpp
 
 build/rpcwallet.o: src/rpcwallet.cpp src/base58.h \
