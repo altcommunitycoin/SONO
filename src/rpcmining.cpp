@@ -507,6 +507,10 @@ Value getblocktemplate(const Array& params, bool fHelp)
             "  \"sizelimit\" : limit of block size\n"
             "  \"bits\" : compressed target of next block\n"
             "  \"height\" : height of the next block\n"
+            "  \"payee\" : required payee\n"
+            "  \"payee_amount\" : required amount to pay\n"
+            "  \"masternode_payments\" : true|false,         (boolean) true, if masternode payments are enabled"
+            "  \"enforce_masternode_payments\" : true|false  (boolean) true, if masternode payments are enforced"
             "See https://en.bitcoin.it/wiki/BIP_0022 for full specification.");
 
     std::string strMode = "template";
@@ -535,6 +539,8 @@ Value getblocktemplate(const Array& params, bool fHelp)
 
     if (pindexBest->nHeight >= Params().LastPOWBlock())
         throw JSONRPCError(RPC_MISC_ERROR, "No more PoW blocks");
+
+    static CReserveKey reservekey(pwalletMain);
 
     // Update block
     static unsigned int nTransactionsUpdatedLast;
@@ -645,7 +651,6 @@ Value getblocktemplate(const Array& params, bool fHelp)
     result.push_back(Pair("height", (int64_t)(pindexPrev->nHeight+1)));
 
 
-
     // ---- Masternode info ---
 
     bool bMasternodePayments = false;
@@ -688,7 +693,6 @@ Value getblocktemplate(const Array& params, bool fHelp)
 
     result.push_back(Pair("masternode_payments", bMasternodePayments));
     result.push_back(Pair("enforce_masternode_payments", bMasternodePayments));
-
 
     return result;
 }
