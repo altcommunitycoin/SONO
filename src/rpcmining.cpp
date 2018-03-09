@@ -626,6 +626,8 @@ Value getblocktemplate(const Array& params, bool fHelp)
         aMutable.push_back("prevblock");
     }
 
+    CScript payee;
+
     Object result;
     result.push_back(Pair("version", 2));
     result.push_back(Pair("previousblockhash", pblock->hashPrevBlock.GetHex()));
@@ -641,6 +643,49 @@ Value getblocktemplate(const Array& params, bool fHelp)
     result.push_back(Pair("curtime", (int64_t)pblock->nTime));
     result.push_back(Pair("bits", strprintf("%08x", pblock->nBits)));
     result.push_back(Pair("height", (int64_t)(pindexPrev->nHeight+1)));
+
+    // ---- Masternode info ---
+
+    bool bMasternodePayments = false;
+
+    if(TestNet){
+        if(pindexPrev->nHeight+1 >= 500) bMasternodePayments = true;
+    } else {
+        if(pindexPrev->nHeight+1 >= 250000) bMasternodePayments = true;
+    }
+    if(fDebug) { printf("GetBlockTemplate(): Masternode Payments : %i\n", bMasternodePayments); }
+
+    if(!masternodePayments.GetBlockPayee(pindexPrev->nHeight+1, payee)){
+        //no masternode detected
+        int winningNode = GetCurrentMasterNode(1);
+        if(winningNode >= 0){
+            payee.SetDestination(vecMasternodes[winningNode].pubkey.GetID());
+        } else {
+            printf("getblocktemplate() RPC: Failed to detect masternode to pay, burning coins\n");
+            // masternodes are in-eligible for payment, burn the coins in-stead
+            std::string burnAddress;
+            if (TestNet) burnAddress = "TRCryptoLifeDotNetBurnAddrXXX6gvik";
+            else burnAddress = "AHCryptoLifeDotNetBurnAddrXXainVwi";
+            CBitcoinAddress burnDestination;
+            burnDestination.SetString(burnAddress);
+            payee = GetScriptForDestination(burnDestination.Get());
+        }
+    }
+    printf("getblock : payee = %i, bMasternode = %i\n",payee != CScript(),bMasternodePayments);
+    if(payee != CScript() && bMasternodePayments){
+        CTxDestination address1;
+        ExtractDestination(payee, address1);
+        CBitcoinAddress address2(address1);
+        result.push_back(Pair("payee", address2.ToString().c_str()));
+        result.push_back(Pair("payee_amount", (int64_t)GetMasternodePayment(pindexPrev->nHeight+1, pblock->vtx[0].GetValueOut())));
+    }
+    else {
+        result.push_back(Pair("payee", ""));
+        result.push_back(Pair("payee_amount", ""));
+    }
+
+    result.push_back(Pair("masternode_payments", bMasternodePayments));
+    result.push_back(Pair("enforce_masternode_payments", bMasternodePayments));
 
     return result;
 }
