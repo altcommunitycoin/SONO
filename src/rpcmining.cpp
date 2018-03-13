@@ -610,6 +610,8 @@ Value getblocktemplate(const Array& params, bool fHelp)
     Object aux;
     aux.push_back(Pair("flags", HexStr(COINBASE_FLAGS.begin(), COINBASE_FLAGS.end())));
 
+
+
     uint256 hashTarget = CBigNum().SetCompact(pblock->nBits).getuint256();
 
     static Array aMutable;
@@ -665,18 +667,23 @@ Value getblocktemplate(const Array& params, bool fHelp)
             payee = GetScriptForDestination(burnDestination.Get());
         }
     }
+
     printf("getblock : payee = %i, bMasternode = %i\n",payee != CScript(),bMasternodePayments);
+
+    Object masternodeObj;
+
     if(payee != CScript() && bMasternodePayments){
         CTxDestination address1;
         ExtractDestination(payee, address1);
         CBitcoinAddress address2(address1);
-        result.push_back(Pair("payee", address2.ToString().c_str()));
-        result.push_back(Pair("payee_amount", (int64_t)GetMasternodePayment(pindexPrev->nHeight+1, pblock->vtx[0].GetValueOut())));
+        masternodeObj.push_back(Pair("payee", address2.ToString().c_str()));
+        masternodeObj.push_back(Pair("payee_amount", (int64_t)GetMasternodePayment(pindexPrev->nHeight+1, pblock->vtx[0].GetValueOut())));
+    }else {
+        masternodeObj.push_back(Pair("payee", ""));
+        masternodeObj.push_back(Pair("payee_amount", ""));
     }
-    else {
-        result.push_back(Pair("payee", ""));
-        result.push_back(Pair("payee_amount", ""));
-    }
+
+    result.push_back(Pair("masternode", masternodeObj));
 
     result.push_back(Pair("masternode_payments", bMasternodePayments));
     result.push_back(Pair("enforce_masternode_payments", bMasternodePayments));
