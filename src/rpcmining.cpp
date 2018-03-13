@@ -628,7 +628,7 @@ Value getblocktemplate(const Array& params, bool fHelp)
     result.push_back(Pair("previousblockhash", pblock->hashPrevBlock.GetHex()));
     result.push_back(Pair("transactions", transactions));
     result.push_back(Pair("coinbaseaux", aux));
-    result.push_back(Pair("coinbasevalue", (int64_t)pblock->vtx[0].vout[0].nValue));
+    result.push_back(Pair("coinbasevalue", (int64_t)pblock->vtx[0].GetValueOut()));;
     result.push_back(Pair("target", hashTarget.GetHex()));
     result.push_back(Pair("mintime", (int64_t)pindexPrev->GetPastTimeLimit()+1));
     result.push_back(Pair("mutable", aMutable));
@@ -677,7 +677,7 @@ Value getblocktemplate(const Array& params, bool fHelp)
         ExtractDestination(payee, address1);
         CBitcoinAddress address2(address1);
         masternodeObj.push_back(Pair("payee", address2.ToString().c_str()));
-        masternodeObj.push_back(Pair("payee_amount", (int64_t)GetMasternodePayment(pindexPrev->nHeight+1, pblock->vtx[0].GetValueOut())));
+        masternodeObj.push_back(Pair("amount", (int64_t)GetMasternodePayment(pindexPrev->nHeight+1, pblock->vtx[0].GetValueOut())));
     }else {
         masternodeObj.push_back(Pair("payee", ""));
         masternodeObj.push_back(Pair("payee_amount", ""));
@@ -685,8 +685,8 @@ Value getblocktemplate(const Array& params, bool fHelp)
 
     result.push_back(Pair("masternode", masternodeObj));
 
-    result.push_back(Pair("masternode_payments", bMasternodePayments));
-    result.push_back(Pair("enforce_masternode_payments", bMasternodePayments));
+    result.push_back(Pair("masternode_payments_started", bMasternodePayments));
+    result.push_back(Pair("masternode_payments_enforced", bMasternodePayments));
 
     return result;
 }
