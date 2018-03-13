@@ -102,7 +102,7 @@ public:
 };
 
 
-CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake, int64_t* pFees)
+CBlock* CreateNewBlock(CReserveKey& reservekey, bool fProofOfStake, int64_t* pFees)
 {
     // Create new block
     auto_ptr<CBlock> pblock(new CBlock());
@@ -123,10 +123,9 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake, int64_t* pFees)
 
     if (!fProofOfStake)
     {
-        CReserveKey reservekey(pwallet);
         CPubKey pubkey;
         if (!reservekey.GetReservedKey(pubkey))
-            return NULL;
+        return NULL;
         txNew.vout[0].scriptPubKey.SetDestination(pubkey.GetID());
     }
     else
@@ -411,7 +410,7 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake, int64_t* pFees)
         nLastBlockTx = nBlockTx;
         nLastBlockSize = nBlockSize;
 
-        int64_t blockValue = GetProofOfWorkReward(nHeight, nFees);
+        int64_t blockValue = GetProofOfWorkReward(nFees);
         int64_t masternodePayment = GetMasternodePayment(pindexPrev->nHeight+1, blockValue);
 
         //create masternode payment
@@ -590,7 +589,9 @@ void ThreadStakeMiner(CWallet *pwallet)
     SetThreadPriority(THREAD_PRIORITY_LOWEST);
 
     // Make this thread recognisable as the mining thread
-    RenameThread("denarius-miner");
+    RenameThread("SONO-miner");
+
+    CReserveKey reservekey(pwallet);
 
     bool fTryToSync = true;
 
@@ -625,7 +626,7 @@ void ThreadStakeMiner(CWallet *pwallet)
         // Create new block
         //
         int64_t nFees;
-        auto_ptr<CBlock> pblock(CreateNewBlock(pwallet, true, &nFees));
+        auto_ptr<CBlock> pblock(CreateNewBlock(reservekey, true, &nFees));
         if (!pblock.get())
             return;
 
@@ -680,7 +681,7 @@ void static BitcoinMiner(CWallet *pwallet)
         CBlockIndex* pindexPrev = pindexBest;
 
         int64_t nFees;
-        auto_ptr<CBlock> pblocktemplate(CreateNewBlock(pwallet, false, &nFees));
+        auto_ptr<CBlock> pblocktemplate(CreateNewBlock(reservekey, false, &nFees));
         if (!pblocktemplate.get())
             return;
 

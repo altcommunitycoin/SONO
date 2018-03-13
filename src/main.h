@@ -87,7 +87,7 @@ static const int64_t MIN_TX_FEE = 10000; //<------------------------------------
 /** Fees smaller than this (in satoshi) are considered zero fee (for relaying) */
 static const int64_t MIN_RELAY_TX_FEE = MIN_TX_FEE;
 /** No amount larger than this (in satoshi) is valid */
-static const int64_t MAX_MONEY = 500000000 * COIN; 
+static const int64_t MAX_MONEY = 500000000 * COIN;
 
 static const int64_t COIN_YEAR_REWARD = 180 * CENT; // 5% per year
 
@@ -97,7 +97,7 @@ static const int MODIFIER_INTERVAL_SWITCH = 500;
 
 inline bool MoneyRange(int64_t nValue) { return (nValue >= 0 && nValue <= MAX_MONEY); }
 /** Threshold for nLockTime: below this value it is interpreted as block number, otherwise as UNIX timestamp. */
-static const unsigned int LOCKTIME_THRESHOLD = 500000000; // 
+static const unsigned int LOCKTIME_THRESHOLD = 500000000; //
 
 inline bool IsProtocolV1RetargetingFixed(int nHeight) { return TestNet() || nHeight > 0; }
 inline bool IsProtocolV2(int nHeight) { return TestNet() || nHeight > 0; }
@@ -180,7 +180,7 @@ void ThreadImport(std::vector<boost::filesystem::path> vImportFiles);
 
 bool CheckProofOfWork(uint256 hash, unsigned int nBits);
 unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfStake);
-int64_t GetProofOfWorkReward(int nHeight, int64_t nFees);
+int64_t GetProofOfWorkReward(int64_t nFees);
 int64_t GetProofOfStakeReward(const CBlockIndex* pindexPrev, int64_t nCoinAge, int64_t nFees);
 unsigned int ComputeMinWork(unsigned int nBase, int64_t nTime);
 unsigned int ComputeMinStake(unsigned int nBase, int64_t nTime, unsigned int nBlockTime);
@@ -190,7 +190,6 @@ bool GetTransaction(const uint256 &hash, CTransaction &tx, uint256 &hashBlock);
 uint256 WantedByOrphan(const COrphanBlock* pblockOrphan);
 const CBlockIndex* GetLastBlockIndex(const CBlockIndex* pindex, bool fProofOfStake);
 void ThreadStakeMiner(CWallet *pwallet);
-void StakeMiner(CWallet *pwallet);
 
 
 /** (try to) add transaction to memory pool **/
@@ -363,7 +362,6 @@ public:
     /** Amount of bitcoins coming in to this transaction
         Note that lightweight clients may not know anything besides the hash of previous transactions,
         so may not be able to calculate this.
-
         @param[in] mapInputs	Map of previous transactions that have outputs we're spending
         @return	Sum of value of all inputs (scriptSigs)
         @see CTransaction::FetchInputs
@@ -438,7 +436,6 @@ public:
     bool DisconnectInputs(CTxDB& txdb);
 
     /** Fetch from memory and/or disk. inputsRet keys are transaction hashes.
-
      @param[in] txdb	Transaction database
      @param[in] mapTestPool	List of pending changes to the transaction index database
      @param[in] fBlock	True if being called to add a new best-block to the chain
@@ -452,7 +449,6 @@ public:
 
     /** Sanity check previous transactions, then, if all checks succeed,
         mark them as spent by this transaction.
-
         @param[in] inputs	Previous transactions (from FetchInputs)
         @param[out] mapTestPool	Keeps track of inputs that need to be updated on disk
         @param[in] posThisTx	Position of this transaction on disk
@@ -513,7 +509,6 @@ bool AreInputsStandard(const CTransaction& tx, const MapPrevTx& mapInputs);
 unsigned int GetLegacySigOpCount(const CTransaction& tx);
 
 /** Count ECDSA signature operations in pay-to-script-hash inputs.
-
     @param[in] mapInputs	Map of previous transactions that have outputs we're spending
     @return maximum number of sigops required to validate this transaction's inputs
     @see CTransaction::FetchInputs
@@ -733,14 +728,14 @@ public:
     {
         if (nVersion > 6)
             return Hash(BEGIN(nVersion), END(nNonce));
-			
+
         else
             return GetPoWHash();
     }
 
      uint256 GetPoWHash() const
     {
-		return SkunkHash5(BEGIN(nVersion), END(nNonce));
+        return SkunkHash5(BEGIN(nVersion), END(nNonce));
     }
 
 
@@ -1465,4 +1460,3 @@ protected:
 };
 
 #endif
-
