@@ -420,7 +420,7 @@ CBlock* CreateNewBlock(CReserveKey& reservekey, bool fProofOfStake, int64_t* pFe
         }
 
         if (fDebug && GetBoolArg("-printpriority"))
-            printf("CreateNewBlock(): total size %"PRIu64"\n", nBlockSize);
+            printf("CreateNewBlock(): total size \n", nBlockSize);
 
         if (!fProofOfStake){
             pblock->vtx[0].vout[0].nValue = blockValue;

@@ -33,6 +33,8 @@ int64_t nTransactionFee = MIN_TX_FEE;
 int64_t nReserveBalance = 0;
 int64_t nMinimumInputValue = 0;
 
+
+
 //static unsigned int GetStakeSplitAge() { return 9 * 24 * 60 * 60; }
 static int64_t GetStakeCombineThreshold() { return 1000 * COIN; }
 
@@ -1480,6 +1482,7 @@ void CWallet::AvailableCoinsMN(vector<COutput>& vCoins, bool fOnlyConfirmed, con
                 if (!(pcoin->IsSpent(i)) && IsMine(pcoin->vout[i]) && pcoin->vout[i].nValue >= nMinimumInputValue &&
                 (!coinControl || !coinControl->HasSelected() || coinControl->IsSelected((*it).first, i)))
                     vCoins.push_back(COutput(pcoin, i, nDepth));*/
+
             // do not use IX for inputs that have less then 6 blockchain confirmations
             if (useIX && nDepth < 6)
                 continue;
@@ -1537,6 +1540,13 @@ void CWallet::AvailableCoinsForStaking(vector<COutput>& vCoins, unsigned int nSp
             int nDepth = pcoin->GetDepthInMainChain();
             if (nDepth < 1)
                 continue;
+
+            // Stake is prevented if you want to stake a balance lower than 400 coins, except that your total balance is lower than 400. Thanks to MartijnKluijtmans for the basic idea here
+            // His idea was: --->    if (!(pcoin->IsSpent(i)) && IsMine(pcoin->vout[i]) && (pcoin->vout[i].nValue >= nMinimumInputValue || GetBalance() < nMinimumInputValue))   <---
+            // But --->  || GetBalance() < nMinimumInputValue <--- made some serious performance issues with Linux
+
+            if (GetBalance()>= 400)
+                nMinimumInputValue = 400;
 
             for (unsigned int i = 0; i < pcoin->vout.size(); i++)
                 if (!(pcoin->IsSpent(i)) && IsMine(pcoin->vout[i]) && pcoin->vout[i].nValue >= nMinimumInputValue)
@@ -3423,7 +3433,8 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
                 vwtxPrev.push_back(pcoin.first);
                 txNew.vout.push_back(CTxOut(0, scriptPubKeyOut));
 
-                if(nCredit > 100 * COIN)
+                //Coins split for balances over 1000 coins. Thanks to MartijnKluijtmans
+                if(nCredit > 1000 * COIN)
                     txNew.vout.push_back(CTxOut(0, scriptPubKeyOut)); //split stake
                 LogPrint("coinstake", "CreateCoinStake : added kernel type=%d\n", whichType);
                 fKernelFound = true;

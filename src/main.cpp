@@ -1915,7 +1915,7 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
         int64_t nCalculatedStakeReward = GetProofOfStakeReward(pindex->pprev, nCoinAge, nFees);
 
 
-        // I am sure that can be done much smoother
+        // I am sure that can be done much smoother. Thanks to MartijnKluijtmans who has found this bug.
         if (TestNet())
         {
             // Verify Testnet PoS at block 2000
@@ -1925,8 +1925,8 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
                 return DoS(100, error("ConnectBlock() : coinstake pays too much(actual=%d vs calculated=%d)", nStakeReward, nCalculatedStakeReward));
             }
 
-        // Verify PoS at block 250000
-        } else if (nBestHeight > 250000)
+        // Verify PoS at block 300000
+        } else if (nBestHeight >= 300000)
         {
         if (nStakeReward > nCalculatedStakeReward)
             return DoS(100, error("ConnectBlock() : coinstake pays too much(actual=%d vs calculated=%d)", nStakeReward, nCalculatedStakeReward));
@@ -1945,7 +1945,7 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
       MasternodePaymentsV1 = true;
     }
 
-    else if(nTime > START_MASTERNODE_PAYMENTS && nBestHeight <= 249999)
+    else if(nTime > START_MASTERNODE_PAYMENTS && nBestHeight <= 299999)
       MasternodePaymentsV1 = true;
 
     //Make sure that it dont get activated accidentally
@@ -2015,6 +2015,7 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
     // ----------- masternode payments V2-----------
     // Thanks to the Denarius Team, who have written this awesome snippet.
     // https://denarius.io/ for further informations
+    // We fully activate Hybrid Masternodes at block 300000
 
         bool MasternodePaymentsV2 = false;
 
@@ -2023,7 +2024,7 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
           if(nTime > START_MASTERNODE_PAYMENTS && nBestHeight >= 500)
           MasternodePaymentsV2 = true;
 
-        } else if(nTime > START_MASTERNODE_PAYMENTS && nBestHeight >= 250000)
+        } else if(nTime > START_MASTERNODE_PAYMENTS && nBestHeight >= 300000)
           MasternodePaymentsV2 = true;
 
 
@@ -3579,10 +3580,12 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
 
         if (pfrom->nVersion < MIN_PEER_PROTO_VERSION)
          badVersion = true;
-        if (nBestHeight >= 250000 && pfrom->nVersion < 70010)
+
+        // disconnect from old peers at height 300000. Make sure that only correct clients participate with MNv2
+        if (nBestHeight >= 300000 && pfrom->nVersion < 70010)
          badVersion = true;
 
-        if (badVersion)
+        if (badVersion == true )
         {
             // disconnect from peers older than this proto version
             LogPrintf("partner %s using obsolete version %i; disconnecting\n", pfrom->addr.ToString(), pfrom->nVersion);
