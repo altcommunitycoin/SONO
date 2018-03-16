@@ -446,13 +446,21 @@ void BlockBrowser::updateStatistics()
     QString stakemin = QString::number(nMinWeight);
     QString stakemax = QString::number(nNetworkWeight);
     QString phase = "";
-    if (pindexBest->nHeight < 240000)
+    if (TestNet())
+    {
+        phase = "Testnet";
+    }
+    else if (pindexBest->nHeight < 240000)
     {
         phase = "PoW + PoS Stage 1 ";
     }
-    else if (pindexBest->nHeight > 240000)
+    else if (pindexBest->nHeight < 300000)
     {
         phase = "PoW + PoS Stage 2 ";
+    }
+    else
+    {
+        phase = "PoW + PoS + MN Hybrid";
     }
 
     QString subsidy = QString::number(nSubsidy, 'f', 6);

@@ -308,17 +308,17 @@ void BitcoinGUI::createActions()
     messageAction->setCheckable(true);
     tabGroup->addAction(messageAction);
 
-    blockAction = new QAction(QIcon(":/icons/statistics"), tr("&Block Explorer"), this);
+    blockAction = new QAction(QIcon(":/icons/worker"), tr("&Block Explorer"), this);
     blockAction->setToolTip(tr("Explore the BlockChain"));
     blockAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_6));
     blockAction->setCheckable(true);
     tabGroup->addAction(blockAction);
 
- //  clientcontrolAction = new QAction(QIcon(":/icons/update"), tr("&Client Update"), this);
+ //   clientcontrolAction = new QAction(QIcon(":/icons/update"), tr("&Client Update"), this);
  //   clientcontrolAction->setToolTip(tr("Client control and management Page"));
  //   clientcontrolAction->setCheckable(true);
  //   clientcontrolAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_6));
-   // tabGroup->addAction(clientcontrolAction);
+ //   tabGroup->addAction(clientcontrolAction);
 
 /*
     generateAction = new QAction(QIcon(":/icons/worker"), tr("&Worker"), this);
@@ -330,14 +330,14 @@ void BitcoinGUI::createActions()
     //multisigAction = new QAction(QIcon(":/icons/send"), tr("Multisig"), this);
     //tabGroup->addAction(multisigAction);
 
-  /*  TradingAction = new QAction(tr("&Trade"), this);
+  /*TradingAction = new QAction(tr("&Trade"), this);
     TradingAction ->setToolTip(tr("Start Trading"));
     TradingAction ->setCheckable(true);
     TradingAction ->setShortcut(QKeySequence(Qt::ALT + Qt::Key_8));
     TradingAction->setProperty("objectName","TradingAction");
     tabGroup->addAction(TradingAction);*/
 
-   // connect(TradingAction, SIGNAL(triggered()), this, SLOT(gotoTradingPage()));
+ // connect(TradingAction, SIGNAL(triggered()), this, SLOT(gotoTradingPage()));
     connect(blockAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
     connect(blockAction, SIGNAL(triggered()), this, SLOT(gotoBlockBrowser()));
     connect(overviewAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
@@ -350,16 +350,16 @@ void BitcoinGUI::createActions()
     connect(historyAction, SIGNAL(triggered()), this, SLOT(gotoHistoryPage()));
     connect(addressBookAction, SIGNAL(triggered()), this, SLOT(gotoAddressBookPage()));
     connect(addressBookAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
-    //connect(generateAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
+//  connect(generateAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
     connect(masternodeManagerAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
     connect(masternodeManagerAction, SIGNAL(triggered()), this, SLOT(gotoMasternodeManagerPage()));
     connect(messageAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
     connect(messageAction, SIGNAL(triggered()), this, SLOT(gotoMessagePage()));
-   // connect(clientcontrolAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
-   // connect(clientcontrolAction, SIGNAL(triggered()), this, SLOT(gotoClientControlPage()));
+ // connect(clientcontrolAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
+ // connect(clientcontrolAction, SIGNAL(triggered()), this, SLOT(gotoClientControlPage()));
 
-    //connect(multisigAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
-    //connect(multisigAction, SIGNAL(triggered()), this, SLOT(gotoMultisigPage()));
+ // connect(multisigAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
+ // connect(multisigAction, SIGNAL(triggered()), this, SLOT(gotoMultisigPage()));
 
     quitAction = new QAction(tr("E&xit"), this);
     quitAction->setToolTip(tr("Quit application"));

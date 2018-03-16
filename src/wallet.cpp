@@ -31,7 +31,7 @@ using namespace std;
 // Settings
 int64_t nTransactionFee = MIN_TX_FEE;
 int64_t nReserveBalance = 0;
-int64_t nMinimumInputValue = 0;
+int64_t nMinimumInputValue = 5;
 
 
 
@@ -1540,13 +1540,6 @@ void CWallet::AvailableCoinsForStaking(vector<COutput>& vCoins, unsigned int nSp
             int nDepth = pcoin->GetDepthInMainChain();
             if (nDepth < 1)
                 continue;
-
-            // Stake is prevented if you want to stake a balance lower than 400 coins, except that your total balance is lower than 400. Thanks to MartijnKluijtmans for the basic idea here
-            // His idea was: --->    if (!(pcoin->IsSpent(i)) && IsMine(pcoin->vout[i]) && (pcoin->vout[i].nValue >= nMinimumInputValue || GetBalance() < nMinimumInputValue))   <---
-            // But --->  || GetBalance() < nMinimumInputValue <--- made some serious performance issues with Linux
-
-            if (GetBalance()>= 400)
-                nMinimumInputValue = 400;
 
             for (unsigned int i = 0; i < pcoin->vout.size(); i++)
                 if (!(pcoin->IsSpent(i)) && IsMine(pcoin->vout[i]) && pcoin->vout[i].nValue >= nMinimumInputValue)

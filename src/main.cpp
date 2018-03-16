@@ -1935,7 +1935,7 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
         }
 
 
-    // ----------- masternode payments V1----------- *CAUTION* It will work with V1 until Block 249999. With 250000 it starts with V2
+    // ----------- masternode payments V1----------- *CAUTION* It will work with V1 until Block 299999. With 300000 it starts with V2
 
     bool MasternodePaymentsV1 = false;
 
@@ -2021,7 +2021,7 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
 
         if (TestNet())
         {
-          if(nTime > START_MASTERNODE_PAYMENTS && nBestHeight >= 500)
+          if(nTime > START_MASTERNODE_PAYMENTS && nBestHeight >= 3000)
           MasternodePaymentsV2 = true;
 
         } else if(nTime > START_MASTERNODE_PAYMENTS && nBestHeight >= 300000)
