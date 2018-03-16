@@ -2,7 +2,7 @@
   <img width="128" height="128" src="https://github.com/altcommunitycoin/SONO/blob/master/src/qt/res/images/about.png">
 </p>
 
-# UPDATE before block 250.000 to min Version 1.3.0.1!
+# UPDATE before block 268.000 to min Version 1.3.0.1!
 
 The SONO project is an endeavor created and managed by young entrepreneurs who wish to spread the word of cryptocurrency and fulfill the potential decentralized currencies can bring.
 The SONO project is an aggregate of multiple teams working on an entire ecosystem that will make it possible for your average member of society to learn and understand what cryptocurrency is and what it is able to offer.
