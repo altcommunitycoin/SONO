@@ -9,11 +9,14 @@
 #include "kernel.h"
 #include "masternode.h"
 
-
 using namespace std;
 
-
-// Implemented SONO parallel miner | Auto deploy 
+//4 	version 	Which set of block validation rules to follow.
+//32 	Previous block header hash 	The previous block’s header
+//32 	Merkle root hash 	A hash derived from hashes of all transactions included in this block
+//4 	Time 	The approximate time the block was created.
+//4 	nBits 	The target threshold this block’s header hash must be less than or equal to.
+//4 	Nonce 	An arbitrary number miners change during mining
 
 extern unsigned int nMinerSleep;
 
@@ -53,7 +56,7 @@ void SHA256Transform(void* pstate, void* pinput, const void* pinit)
         ((uint32_t*)pstate)[i] = ctx.h[i];
 }
 
-// Some explaining would be appreciated
+
 class COrphan
 {
 public:
@@ -73,8 +76,8 @@ public:
 uint64_t nLastBlockTx = 0;
 uint64_t nLastBlockSize = 0;
 int64_t nLastCoinStakeSearchInterval = 0;
- 
-// We want to sort transactions by priority and fee, so:
+
+
 typedef boost::tuple<double, double, CTransaction*> TxPriority;
 class TxPriorityCompare
 {
@@ -98,7 +101,7 @@ public:
     }
 };
 
-// CreateNewBlock: create new block (without proof-of-work/proof-of-stake)
+
 CBlock* CreateNewBlock(CReserveKey& reservekey, bool fProofOfStake, int64_t* pFees)
 {
     // Create new block
@@ -107,19 +110,22 @@ CBlock* CreateNewBlock(CReserveKey& reservekey, bool fProofOfStake, int64_t* pFe
         return NULL;
 
     CBlockIndex* pindexPrev = pindexBest;
-    int nHeight = pindexPrev->nHeight + 1;
 
+    int payments = 1;
     // Create coinbase tx
     CTransaction txNew;
     txNew.vin.resize(1);
     txNew.vin[0].prevout.SetNull();
     txNew.vout.resize(1);
 
+
+    int nHeight = pindexPrev->nHeight+1; // height of new block
+
     if (!fProofOfStake)
     {
         CPubKey pubkey;
         if (!reservekey.GetReservedKey(pubkey))
-            return NULL;
+        return NULL;
         txNew.vout[0].scriptPubKey.SetDestination(pubkey.GetID());
     }
     else
@@ -149,6 +155,24 @@ CBlock* CreateNewBlock(CReserveKey& reservekey, bool fProofOfStake, int64_t* pFe
     unsigned int nBlockMinSize = GetArg("-blockminsize", 0);
     nBlockMinSize = std::min(nBlockMaxSize, nBlockMinSize);
 
+    // start masternode payments
+    bool bMasterNodePayment = false;
+
+    //Only if it isn't Proof of Stake?
+    if (!fProofOfStake)
+    {
+        if (TestNet){
+            if (nHeight >= 500){
+                bMasterNodePayment = true;
+            }
+        }else{
+            if (nHeight >= 250000){
+                bMasterNodePayment = true;
+            }
+        }
+        if(fDebug) { printf("CreateNewBlock(): Masternode Payments : %i\n", bMasterNodePayment); }
+    }
+
     // Fee-per-kilobyte amount considered the same as "free"
     // Be careful setting this: if you set it to zero then
     // a transaction spammer can cheaply fill blocks using
@@ -160,13 +184,50 @@ CBlock* CreateNewBlock(CReserveKey& reservekey, bool fProofOfStake, int64_t* pFe
 
     pblock->nBits = GetNextTargetRequired(pindexPrev, fProofOfStake);
 
-
     // Collect memory pool transactions into the block
     int64_t nFees = 0;
     {
         LOCK2(cs_main, mempool.cs);
         CTxDB txdb("r");
-//>SONO<
+
+        if(bMasterNodePayment) {
+            bool hasPayment = true;
+            //spork
+            CScript payee;
+            if(!masternodePayments.GetBlockPayee(pindexPrev->nHeight+1, payee)){
+                //no masternode detected
+                int winningNode = GetCurrentMasterNode(1);
+                if(winningNode >= 0){
+                    payee.SetDestination(vecMasternodes[winningNode].pubkey.GetID());
+                } else {
+                    printf("CreateNewBlock: Failed to detect masternode to pay\n");
+                    // pay the burn address if it can't detect
+                    if (fDebug) printf("CreateNewBlock(): Failed to detect masternode to pay, burning coins..\n");
+                    std::string burnAddress;
+                    if (TestNet) std::string burnAddress = "TRCryptoLifeDotNetBurnAddrXXX6gvik";
+                    else std::string burnAddress = "AHCryptoLifeDotNetBurnAddrXXainVwi";
+                    CBitcoinAddress burnAddr;
+                    burnAddr.SetString(burnAddress);
+                    payee = GetScriptForDestination(burnAddr.Get());
+                }
+            }
+
+            if(hasPayment){
+                payments = txNew.vout.size() + 1;
+                printf("CreateNewBlock(): Payment Size: %i\n", payments);
+                pblock->vtx[0].vout.resize(payments);
+
+                pblock->vtx[0].vout[payments-1].scriptPubKey = payee;
+                pblock->vtx[0].vout[payments-1].nValue = 0;
+
+                CTxDestination address1;
+                ExtractDestination(payee, address1);
+                CBitcoinAddress address2(address1);
+
+                printf("CreateNewBlock(): Masternode payment to %s\n", address2.ToString().c_str());
+            }
+        }
+
         // Priority order to process transactions
         list<COrphan> vOrphan; // list memory doesn't move
         map<uint256, vector<COrphan*> > mapDependers;
@@ -196,7 +257,7 @@ CBlock* CreateNewBlock(CReserveKey& reservekey, bool fProofOfStake, int64_t* pFe
                     // or other transactions in the memory pool.
                     if (!mempool.mapTx.count(txin.prevout.hash))
                     {
-                        LogPrintf("ERROR: mempool transaction missing input\n");
+                        printf("ERROR: mempool transaction missing input\n");
                         if (fDebug) assert("mempool transaction missing input" == 0);
                         fMissingInputs = true;
                         if (porphan)
@@ -309,9 +370,6 @@ CBlock* CreateNewBlock(CReserveKey& reservekey, bool fProofOfStake, int64_t* pFe
             if (nBlockSigOps + nTxSigOps >= MAX_BLOCK_SIGOPS)
                 continue;
 
-            // Note that flags: we don't want to set mempool/IsStandard()
-            // policy here, but we still have to ensure that the block we
-            // create only contains transactions that are valid in new blocks.
             if (!tx.ConnectInputs(txdb, mapInputs, mapTestPoolTmp, CDiskTxPos(1,1,1), pindexPrev, false, true, MANDATORY_SCRIPT_VERIFY_FLAGS))
                 continue;
             mapTestPoolTmp[tx.GetHash()] = CTxIndex(CDiskTxPos(1,1,1), tx.vout.size());
@@ -324,10 +382,10 @@ CBlock* CreateNewBlock(CReserveKey& reservekey, bool fProofOfStake, int64_t* pFe
             nBlockSigOps += nTxSigOps;
             nFees += nTxFees;
 
-            if (fDebug && GetBoolArg("-printpriority", false))
+            if (fDebug && GetBoolArg("-printpriority"))
             {
-                LogPrintf("priority %.1f feeperkb %.1f txid %s\n",
-                       dPriority, dFeePerKb, tx.GetHash().ToString());
+                printf("priority %.1f feeperkb %.1f txid %s\n",
+                       dPriority, dFeePerKb, tx.GetHash().ToString().c_str());
             }
 
             // Add transactions that depend on this one to the priority queue
@@ -352,18 +410,28 @@ CBlock* CreateNewBlock(CReserveKey& reservekey, bool fProofOfStake, int64_t* pFe
         nLastBlockTx = nBlockTx;
         nLastBlockSize = nBlockSize;
 
-        if (fDebug && GetBoolArg("-printpriority", false))
-            LogPrintf("CreateNewBlock(): total size %u\n", nBlockSize);
-// >SONO<
-        if (!fProofOfStake)
-            pblock->vtx[0].vout[0].nValue = GetProofOfWorkReward(nFees);
+        int64_t blockValue = GetProofOfWorkReward(nFees);
+        int64_t masternodePayment = GetMasternodePayment(pindexPrev->nHeight+1, blockValue);
+
+        //create masternode payment
+        if(payments > 1){
+            pblock->vtx[0].vout[payments-1].nValue = masternodePayment;
+            blockValue -= masternodePayment;
+        }
+
+        if (fDebug && GetBoolArg("-printpriority"))
+            printf("CreateNewBlock(): total size \n", nBlockSize);
+
+        if (!fProofOfStake){
+            pblock->vtx[0].vout[0].nValue = blockValue;
+        }
 
         if (pFees)
             *pFees = nFees;
 
         // Fill in header
         pblock->hashPrevBlock  = pindexPrev->GetBlockHash();
-        pblock->nTime          = max(pindexPrev->GetPastTimeLimit()+1, pblock->GetMaxTransactionTime());
+        pblock->nTime = max(pindexPrev->GetPastTimeLimit()+1, pblock->GetMaxTransactionTime());
         if (!fProofOfStake)
             pblock->UpdateTime(pindexPrev);
         pblock->nNonce         = 0;
@@ -371,6 +439,7 @@ CBlock* CreateNewBlock(CReserveKey& reservekey, bool fProofOfStake, int64_t* pFe
 
     return pblock.release();
 }
+
 
 
 void IncrementExtraNonce(CBlock* pblock, CBlockIndex* pindexPrev, unsigned int& nExtraNonce)
@@ -528,13 +597,15 @@ void ThreadStakeMiner(CWallet *pwallet)
 
     while (true)
     {
+
         while (pwallet->IsLocked())
         {
             nLastCoinStakeSearchInterval = 0;
             MilliSleep(1000);
+
         }
 
-        while (vNodes.size() < 3 || IsInitialBlockDownload())
+        while (vNodes.empty() || IsInitialBlockDownload())
         {
             nLastCoinStakeSearchInterval = 0;
             fTryToSync = true;
@@ -569,5 +640,153 @@ void ThreadStakeMiner(CWallet *pwallet)
         }
         else
             MilliSleep(nMinerSleep);
+
     }
 }
+
+
+
+
+#ifdef ENABLE_WALLET
+//////////////////////////////////////////////////////////////////////////////
+//
+// Internal miner
+//
+double dHashesPerSec = 0.0;
+int64_t nHPSTimerStart = 0;
+
+
+void static BitcoinMiner(CWallet *pwallet)
+{
+    LogPrintf("BRAINHasher Miner started\n");
+    SetThreadPriority(THREAD_PRIORITY_LOWEST);
+    RenameThread("brain-miner");
+
+    // Each thread has its own key and counter
+    CReserveKey reservekey(pwallet);
+    unsigned int nExtraNonce = 0;
+
+    try { while (true) {
+
+        // Busy-wait for the network to come online so we don't waste time mining
+        // on an obsolete chain. In regtest mode we expect to fly solo.
+//        while (vNodes.empty())
+//            MilliSleep(1000);
+
+
+        //
+        // Create new block
+        //
+        unsigned int nTransactionsUpdatedLast = mempool.GetTransactionsUpdated();
+        CBlockIndex* pindexPrev = pindexBest;
+
+        int64_t nFees;
+        auto_ptr<CBlock> pblocktemplate(CreateNewBlock(reservekey, false, &nFees));
+        if (!pblocktemplate.get())
+            return;
+
+        CBlock *pblock = pblocktemplate.get();
+
+        IncrementExtraNonce(pblock, pindexPrev, nExtraNonce);
+
+        /*LogPrintf("Running BRAINHash Miner with %llu transactions in block (%u bytes)\n", pblock->vtx.size(),
+               ::GetSerializeSize(*pblock, SER_NETWORK, PROTOCOL_VERSION));
+*/
+    uint256 hashTarget = CBigNum().SetCompact(pblock->nBits).getuint256();
+    int64_t nStart = GetTime();
+    uint256 hash;
+    unsigned int nHashesDone = 0;
+
+        while (true)
+        {
+            hash = pblock->GetPoWHash();
+        ++nHashesDone;
+
+            if (hash <= hashTarget)
+            {
+                // Found a solution
+                SetThreadPriority(THREAD_PRIORITY_NORMAL);
+                CheckWork(pblock, *pwallet, reservekey);
+                SetThreadPriority(THREAD_PRIORITY_LOWEST);
+                break;
+            }
+        ++pblock->nNonce;
+
+            // Meter hashes/sec
+            static int64_t nHashCounter;
+            if (nHPSTimerStart == 0)
+            {
+                nHPSTimerStart = GetTime();
+                nHashCounter = 0;
+            }
+            else
+                ++nHashCounter;// += nHashesDone;
+            if ((GetTime() - nHPSTimerStart) % 4 == 0)
+            {
+                static CCriticalSection cs;
+                {
+                    LOCK(cs);
+            int64_t nLimiter = 1;
+                    int64_t nDelta = GetTime() - nHPSTimerStart;
+            if(nDelta > 0 && nLimiter <= 10+1)
+                        dHashesPerSec = 32768 * nHashCounter / (GetTime() - nHPSTimerStart);
+                        //nHPSTimerStart = GetTimeMillis();
+                        //nHashCounter = 0;
+            //nHashesDone = 0;
+                        // LogPrintf("BRAINHash CPU Hashing Rate: %6.0f hash/s\n", dHashesPerSec);
+            // Avoid Debug Log Pollution
+            nLimiter++; // Increment by 1
+                        if (nLimiter >= 5000+1){
+                                nLimiter = 1;
+                        }
+                }
+            }
+
+            // Check for stop or if block needs to be rebuilt
+            boost::this_thread::interruption_point();
+            if (vNodes.empty())
+                break;
+            if (pblock->nNonce >= 0xffff0000)
+                break;
+            if (mempool.GetTransactionsUpdated() != nTransactionsUpdatedLast && GetTime() - nStart > 60)
+                break;
+            if (pindexPrev != pindexBest)
+                break;
+
+            // Update nTime every few seconds
+        pblock->UpdateTime(pindexPrev);
+
+            if (TestNet())
+            {
+                // Changing pblock->nTime can change work required on testnet:
+                hashTarget = CBigNum().SetCompact(pblock->nBits).getuint256();
+            }
+        }
+    } }
+    catch (boost::thread_interrupted)
+    {
+        LogPrintf("BRAINHash Miner terminated\n");
+        throw;
+    }
+}
+
+void GenerateBitcoins(bool fGenerate, CWallet* pwallet, int nThreads)
+{
+    static boost::thread_group* minerThreads = NULL;
+    if(nThreads == -1)
+        nThreads = boost::thread::hardware_concurrency();
+
+    if (minerThreads != NULL)
+    {
+    minerThreads->interrupt_all();
+    delete minerThreads;
+    minerThreads = NULL;
+    }
+    if (nThreads == 0 || !fGenerate)
+    return;
+    minerThreads = new boost::thread_group();
+    for (int i = 0; i < nThreads; i++)
+    minerThreads->create_thread(boost::bind(&BitcoinMiner, pwallet));
+
+}
+#endif

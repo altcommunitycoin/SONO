@@ -99,6 +99,18 @@ Value ValueFromAmount(int64_t amount)
 }
 
 
+std::string HexBits(unsigned int nBits)
+{
+    union {
+        int32_t nBits;
+        char cBits[4];
+    } uBits;
+    uBits.nBits = htonl((int32_t)nBits);
+    return HexStr(BEGIN(uBits.cBits), END(uBits.cBits));
+}
+
+
+
 //
 // Utilities: convert hex-encoded Values
 // (throws error if not hex).
@@ -253,6 +265,7 @@ static const CRPCCommand vRPCCommands[] =
     { "masternode",             &masternode,             true,      false,      true },
 
 #ifdef ENABLE_WALLET
+    { "setgenerate",            &setgenerate,            true,      false,     true },
     { "getmininginfo",          &getmininginfo,          true,      false,     false },
     { "getstakinginfo",         &getstakinginfo,         true,      false,     false },
     { "getnewaddress",          &getnewaddress,          true,      false,     true },
@@ -301,7 +314,7 @@ static const CRPCCommand vRPCCommands[] =
     { "repairwallet",           &repairwallet,           false,     true,      true },
     { "resendtx",               &resendtx,               false,     true,      true },
     { "makekeypair",            &makekeypair,            false,     true,      false },
-    { "checkkernel",            &checkkernel,            true,      false,     true },
+//  { "checkkernel",            &checkkernel,            true,      false,     true },
     { "getnewstealthaddress",   &getnewstealthaddress,   false,  false, true},
     { "liststealthaddresses",   &liststealthaddresses,   false,  false, true},
     { "importstealthaddress",   &importstealthaddress,   false,  false, true},

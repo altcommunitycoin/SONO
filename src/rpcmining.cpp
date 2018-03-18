@@ -11,6 +11,7 @@
 #include "init.h"
 #include "miner.h"
 #include "kernel.h"
+#include "masternode.h"
 
 #include <boost/assign/list_of.hpp>
 
@@ -609,6 +610,8 @@ Value getblocktemplate(const Array& params, bool fHelp)
     Object aux;
     aux.push_back(Pair("flags", HexStr(COINBASE_FLAGS.begin(), COINBASE_FLAGS.end())));
 
+
+
     uint256 hashTarget = CBigNum().SetCompact(pblock->nBits).getuint256();
 
     static Array aMutable;
@@ -619,12 +622,13 @@ Value getblocktemplate(const Array& params, bool fHelp)
         aMutable.push_back("prevblock");
     }
 
+    CScript payee;
     Object result;
     result.push_back(Pair("version", pblock->nVersion));
     result.push_back(Pair("previousblockhash", pblock->hashPrevBlock.GetHex()));
     result.push_back(Pair("transactions", transactions));
     result.push_back(Pair("coinbaseaux", aux));
-    result.push_back(Pair("coinbasevalue", (int64_t)pblock->vtx[0].vout[0].nValue));
+    result.push_back(Pair("coinbasevalue", (int64_t)pblock->vtx[0].GetValueOut()));;
     result.push_back(Pair("target", hashTarget.GetHex()));
     result.push_back(Pair("mintime", (int64_t)pindexPrev->GetPastTimeLimit()+1));
     result.push_back(Pair("mutable", aMutable));
@@ -634,6 +638,55 @@ Value getblocktemplate(const Array& params, bool fHelp)
     result.push_back(Pair("curtime", (int64_t)pblock->nTime));
     result.push_back(Pair("bits", strprintf("%08x", pblock->nBits)));
     result.push_back(Pair("height", (int64_t)(pindexPrev->nHeight+1)));
+
+
+    // ---- Masternode info ---
+
+    bool bMasternodePayments = false;
+
+    if(TestNet){
+        if(pindexPrev->nHeight+1 >= 500) bMasternodePayments = true;
+    } else {
+        if(pindexPrev->nHeight+1 >= 250000) bMasternodePayments = true;
+    }
+    if(fDebug) { printf("GetBlockTemplate(): Masternode Payments : %i\n", bMasternodePayments); }
+
+    if(!masternodePayments.GetBlockPayee(pindexPrev->nHeight+1, payee)){
+        //no masternode detected
+        int winningNode = GetCurrentMasterNode(1);
+        if(winningNode >= 0){
+            payee.SetDestination(vecMasternodes[winningNode].pubkey.GetID());
+        } else {
+            printf("getblocktemplate() RPC: Failed to detect masternode to pay, burning coins\n");
+            // masternodes are in-eligible for payment, burn the coins in-stead
+            std::string burnAddress;
+            if (TestNet) burnAddress = "TRCryptoLifeDotNetBurnAddrXXX6gvik";
+            else burnAddress = "AHCryptoLifeDotNetBurnAddrXXainVwi";
+            CBitcoinAddress burnDestination;
+            burnDestination.SetString(burnAddress);
+            payee = GetScriptForDestination(burnDestination.Get());
+        }
+    }
+
+    printf("getblock : payee = %i, bMasternode = %i\n",payee != CScript(),bMasternodePayments);
+
+    Object masternodeObj;
+
+    if(payee != CScript() && bMasternodePayments){
+        CTxDestination address1;
+        ExtractDestination(payee, address1);
+        CBitcoinAddress address2(address1);
+        masternodeObj.push_back(Pair("payee", address2.ToString().c_str()));
+        masternodeObj.push_back(Pair("amount", (int64_t)GetMasternodePayment(pindexPrev->nHeight+1, pblock->vtx[0].GetValueOut())));
+    }else {
+        masternodeObj.push_back(Pair("payee", ""));
+        masternodeObj.push_back(Pair("payee_amount", ""));
+    }
+
+    result.push_back(Pair("masternode", masternodeObj));
+
+    result.push_back(Pair("masternode_payments_started", bMasternodePayments));
+    result.push_back(Pair("masternode_payments_enforced", bMasternodePayments));
 
     return result;
 }
@@ -664,3 +717,28 @@ Value submitblock(const Array& params, bool fHelp)
     return Value::null;
 }
 
+Value setgenerate(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() < 1 || params.size() > 2)
+        throw runtime_error(
+            "setgenerate <generate> [genproclimit]\n"
+            "<generate> is true or false to turn generation on or off.\n"
+            "Generation is limited to [genproclimit] processors, -1 is unlimited.");
+
+    bool fGenerate = true;
+    if (params.size() > 0)
+        fGenerate = params[0].get_bool();
+
+    int nGenProcLimit = 1;
+    if (params.size() > 1)
+    {
+        nGenProcLimit = params[1].get_int();
+        mapArgs["-genproclimit"] = itostr(nGenProcLimit);
+        if (nGenProcLimit == 0)
+            fGenerate = false;
+    }
+    mapArgs["-gen"] = (fGenerate ? "1" : "0");
+
+    GenerateBitcoins(fGenerate, pwalletMain, nGenProcLimit);
+    return Value::null;
+}
