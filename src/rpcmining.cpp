@@ -641,15 +641,11 @@ Value getblocktemplate(const Array& params, bool fHelp)
 
 
     // ---- Masternode info ---
-
-    bool bMasternodePayments = false;
     
-    if(TestNet)
-    {
-        if(pindexPrev->nHeight+1 >= 500) bMasternodePayments = true;
-    }   else 
+    bool bMasternodePayments = false;
+
         if (pindexPrev->nHeight+1 >= 268000) bMasternodePayments = true;
-        // I like to make things sure :)
+        
         else bMasternodePayments = false;
     
     if(fDebug) { printf("GetBlockTemplate(): Masternode Payments : %i\n", bMasternodePayments); }
