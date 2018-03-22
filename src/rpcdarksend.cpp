@@ -273,23 +273,33 @@ Value masternode(const Array& params, bool fHelp)
 
     if (strCommand == "list")
     {
-        std::string strCommand = "active";
+        std::string strCommand = "full";
 
         if (params.size() == 2){
             strCommand = params[1].get_str().c_str();
         }
 
-        if (strCommand != "active" && strCommand != "vin" && strCommand != "pubkey" && strCommand != "lastseen" && strCommand != "activeseconds" && strCommand != "rank" && strCommand != "protocol"){
+        if (strCommand != "full" && strCommand != "vin" && strCommand != "pubkey" && strCommand != "lastseen" && strCommand != "activeseconds" && strCommand != "rank" && strCommand != "protocol"){
             throw runtime_error(
-                "list supports 'active', 'vin', 'pubkey', 'lastseen', 'activeseconds', 'rank', 'protocol'\n");
+                "list supports: 'full', 'vin', 'pubkey', 'lastseen', 'activeseconds', 'rank', 'protocol'\n");
         }
 
         Object obj;
         BOOST_FOREACH(CMasterNode mn, vecMasternodes) {
             mn.Check();
 
-            if(strCommand == "active"){
-                obj.push_back(Pair(mn.addr.ToString().c_str(),       (int)mn.IsEnabled()));
+            if(strCommand == "full"){
+                std::ostringstream streamFull;
+                streamFull << std::setw(18) <<
+                              (int)mn.IsEnabled() << " " <<   //Is Enabled
+                              (int64_t)mn.lastTimeSeen << " " << //Last time seen
+                              (int64_t)(mn.lastTimeSeen - mn.now) << " " << //Time active (in sec)
+                              (int)(GetMasternodeRank(mn.vin, pindexBest->nHeight)) << " " <<  //Rank
+                              (int64_t)mn.protocolVersion; //Protocol Version of Masternode
+
+                std::string strFull = streamFull.str();
+                obj.push_back(Pair(mn.addr.ToString().c_str(), strFull)); //Reports "MasternodeIP: Enabled, Last time seen, Time active, Rank, Protocol"
+
             } else if (strCommand == "vin") {
                 obj.push_back(Pair(mn.addr.ToString().c_str(),       mn.vin.prevout.hash.ToString().c_str()));
             } else if (strCommand == "pubkey") {

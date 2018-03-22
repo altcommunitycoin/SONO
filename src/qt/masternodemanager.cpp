@@ -99,7 +99,7 @@ void MasternodeManager::on_tableWidget_2_itemSelectionChanged()
     }
 }
 
-void MasternodeManager::updateAdrenalineNode(QString alias, QString addr, QString privkey, QString collateral)
+void MasternodeManager::updateAdrenalineNode(QString alias, QString addr, QString privkey, QString collateral, QString status)
 {
     LOCK(cs_adrenaline);
     bool bFound = false;
@@ -117,15 +117,17 @@ void MasternodeManager::updateAdrenalineNode(QString alias, QString addr, QStrin
     if(nodeRow == 0 && !bFound)
         ui->tableWidget_2->insertRow(0);
 
+
     QTableWidgetItem *aliasItem = new QTableWidgetItem(alias);
     QTableWidgetItem *addrItem = new QTableWidgetItem(addr);
-    QTableWidgetItem *statusItem = new QTableWidgetItem("");
+    QTableWidgetItem *statusItem = new QTableWidgetItem(status);
     QTableWidgetItem *collateralItem = new QTableWidgetItem(collateral);
 
     ui->tableWidget_2->setItem(nodeRow, 0, aliasItem);
     ui->tableWidget_2->setItem(nodeRow, 1, addrItem);
     ui->tableWidget_2->setItem(nodeRow, 2, statusItem);
     ui->tableWidget_2->setItem(nodeRow, 3, collateralItem);
+    ui->tableWidget_2->setSortingEnabled(true);
 }
 
 static QString seconds_to_DHMS(quint32 duration)
@@ -179,16 +181,18 @@ void MasternodeManager::updateNodeList()
 	ui->tableWidget->setItem(mnRow, 3, activeSecondsItem);
 	ui->tableWidget->setItem(mnRow, 4, lastSeenItem);
 	ui->tableWidget->setItem(mnRow, 5, pubkeyItem);
+    ui->tableWidget->setSortingEnabled(true);
+    ui->countLabel->setText(QString::number(ui->tableWidget->rowCount()));
     }
 
-    ui->countLabel->setText(QString::number(ui->tableWidget->rowCount()));
+
 
     if(pwalletMain)
     {
         LOCK(cs_adrenaline);
         BOOST_FOREACH(PAIRTYPE(std::string, CAdrenalineNodeConfig) adrenaline, pwalletMain->mapMyAdrenalineNodes)
         {
-            updateAdrenalineNode(QString::fromStdString(adrenaline.second.sAlias), QString::fromStdString(adrenaline.second.sAddress), QString::fromStdString(adrenaline.second.sMasternodePrivKey), QString::fromStdString(adrenaline.second.sCollateralAddress));
+            updateAdrenalineNode(QString::fromStdString(adrenaline.second.sAlias), QString::fromStdString(adrenaline.second.sAddress), QString::fromStdString(adrenaline.second.sMasternodePrivKey), QString::fromStdString(adrenaline.second.sCollateralAddress), QString::fromStdString(adrenaline.second.sstatus));
         }
     }
 }
@@ -284,7 +288,7 @@ void MasternodeManager::on_removeButton_clicked()
         ui->tableWidget_2->setRowCount(0);
         BOOST_FOREACH(PAIRTYPE(std::string, CAdrenalineNodeConfig) adrenaline, pwalletMain->mapMyAdrenalineNodes)
         {
-            updateAdrenalineNode(QString::fromStdString(adrenaline.second.sAlias), QString::fromStdString(adrenaline.second.sAddress), QString::fromStdString(adrenaline.second.sMasternodePrivKey), QString::fromStdString(adrenaline.second.sCollateralAddress));
+            updateAdrenalineNode(QString::fromStdString(adrenaline.second.sAlias), QString::fromStdString(adrenaline.second.sAddress), QString::fromStdString(adrenaline.second.sMasternodePrivKey), QString::fromStdString(adrenaline.second.sCollateralAddress), QString::fromStdString(adrenaline.second.sstatus));
         }
     }
 }
