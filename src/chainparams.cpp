@@ -108,15 +108,9 @@ public:
 
         //MineGenesis(genesis);
 
-        vSeeds.push_back(CDNSSeedData("109.230.231.216", "109.230.231.216"));
-        vSeeds.push_back(CDNSSeedData("159.65.28.130", "159.65.28.130"));
-        vSeeds.push_back(CDNSSeedData("159.65.28.135", "159.65.28.135"));
-        vSeeds.push_back(CDNSSeedData("188.68.56.33", "188.68.56.33"));
-        vSeeds.push_back(CDNSSeedData("185.194.142.254", "185.194.142.254"));
-        vSeeds.push_back(CDNSSeedData("37.120.184.247", "37.120.184.247"));
-        vSeeds.push_back(CDNSSeedData("zPools.de", "zPools.de"));
-
-
+        vSeeds.push_back(CDNSSeedData("seed1.projectsono.io", "seed1.projectsono.io"));
+        vSeeds.push_back(CDNSSeedData("seed2.projectsono.io", "seed2.projectsono.io"));
+        vSeeds.push_back(CDNSSeedData("seed3.projectsono.io", "seed3.projectsono.io"));
 
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1, 23);
         base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1, 125);
