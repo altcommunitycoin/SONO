@@ -98,6 +98,7 @@ public:
     std::string sAddress;
     std::string sCollateralAddress;
     std::string sMasternodePrivKey;
+    std::string sstatus;
 
     CAdrenalineNodeConfig()
     {
