@@ -230,7 +230,7 @@ bool CActiveMasternode::RegisterByPubKey(std::string strService, std::string str
     }
 
     if(!GetMasterNodeVinForPubKey(collateralAddress, vin, pubKeyCollateralAddress, keyCollateralAddress)) {
-		errorMessage = "could not allocate vin for collateralAddress";
+		errorMessage = "Could not allocate vin for collateralAddress. Check if wallet is unlocked for staking.";
     	LogPrintf("Register::Register() - Error: %s\n", errorMessage.c_str());
 		return false;
 	}
