@@ -1,0 +1,18 @@
+obj/script.o: script.cpp script.h keystore.h key.h allocators.h \
+ serialize.h version.h clientversion.h uint256.h hash.h sync.h \
+ threadsafety.h bignum.h util.h tinyformat.h stealth.h main.h core.h \
+ txmempool.h net.h mruset.h netbase.h compat.h protocol.h chainparams.h \
+ addrman.h timedata.h hashblock.h obj/sonoA/sph_skein.h \
+ obj/sonoA/sph_types.h obj/sonoA/sph_cubehash.h obj/sonoA/sph_fugue.h \
+ obj/sonoA/sph_gost.h obj/sonoA/raptor.h obj/sonoA/sph_bmw.h \
+ obj/sonoA/sph_jh.h obj/sonoA/sph_keccak.h crypto/ripemd160.h \
+ crypto/sha1.h crypto/sha256.h eccryptoverify.h
+script.cpp script.h keystore.h key.h allocators.h :
+ serialize.h version.h clientversion.h uint256.h hash.h sync.h :
+ threadsafety.h bignum.h util.h tinyformat.h stealth.h main.h core.h :
+ txmempool.h net.h mruset.h netbase.h compat.h protocol.h chainparams.h :
+ addrman.h timedata.h hashblock.h obj/sonoA/sph_skein.h :
+ obj/sonoA/sph_types.h obj/sonoA/sph_cubehash.h obj/sonoA/sph_fugue.h :
+ obj/sonoA/sph_gost.h obj/sonoA/raptor.h obj/sonoA/sph_bmw.h :
+ obj/sonoA/sph_jh.h obj/sonoA/sph_keccak.h crypto/ripemd160.h :
+ crypto/sha1.h crypto/sha256.h eccryptoverify.h :

@@ -165,8 +165,8 @@ Value checkkernel(const Array& params, bool fHelp)
     if (vNodes.empty())
         throw JSONRPCError(-9, "SONO is not connected!");
 
-    if (IsInitialBlockDownload())
-        throw JSONRPCError(-10, "SONO is downloading blocks...");
+ //   if (IsInitialBlockDownload())
+  //      throw JSONRPCError(-10, "SONO is downloading blocks...");
 
     COutPoint kernel;
     CBlockIndex* pindexPrev = pindexBest;
@@ -246,8 +246,8 @@ Value getworkex(const Array& params, bool fHelp)
     if (vNodes.empty())
         throw JSONRPCError(-9, "SONO is not connected!");
 
-    if (IsInitialBlockDownload())
-        throw JSONRPCError(-10, "SONO is downloading blocks...");
+//    if (IsInitialBlockDownload())
+//        throw JSONRPCError(-10, "SONO is downloading blocks...");
 
     if (pindexBest->nHeight >= Params().LastPOWBlock())
         throw JSONRPCError(RPC_MISC_ERROR, "No more PoW blocks");
@@ -380,8 +380,8 @@ Value getwork(const Array& params, bool fHelp)
     if (vNodes.empty())
         throw JSONRPCError(RPC_CLIENT_NOT_CONNECTED, "SONO is not connected!");
 
-    if (IsInitialBlockDownload())
-        throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD, "SONO is downloading blocks...");
+ //   if (IsInitialBlockDownload())
+  //      throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD, "SONO is downloading blocks...");
 
     if (pindexBest->nHeight >= Params().LastPOWBlock())
         throw JSONRPCError(RPC_MISC_ERROR, "No more PoW blocks");

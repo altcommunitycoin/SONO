@@ -109,7 +109,7 @@ crypto/%.o: %.cpp
 	sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' \
 	-e '/^$$/ d' -e 's/$$/ :/' < $(@:%.o=%.d) >> $(@:%.o=%.P); \
 
-obj/skunkhash/%.o: %.c
+obj/sonoA/%.o: %.c
 	$(CXX) -c $(xCXXFLAGS) -fpermissive -MMD -MF $(@:%.o=%.d) -o $@ $<
 	@cp $(@:%.o=%.d) $(@:%.o=%.P); \
 	sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' \
@@ -167,11 +167,14 @@ OBJS= \
     crypto/sha256.o \
     crypto/sha512.o \
     obj/smessage.o \
-    obj/skunkhash/cubehash.o \
-    obj/skunkhash/aes_helper.o \
-    obj/skunkhash/gost.o \
-    obj/skunkhash/skein.o\
-	obj/skunkhash/fugue.o
+    obj/sonoA/cubehash.o \
+    obj/sonoA/aes_helper.o \
+    obj/sonoA/gost.o \
+    obj/sonoA/skein.o\
+    obj/sonoA/fugue.o \
+    obj/sonoA/bmw.o\
+    obj/sonoA/jh.o\
+    obj/sonoA/keccak.o    
 
 ifeq (${USE_WALLET}, 1)
     DEFS += -DENABLE_WALLET

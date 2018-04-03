@@ -137,10 +137,13 @@ LIBS += $$PWD/src/leveldb/libleveldb.a $$PWD/src/leveldb/libmemenv.a
 SOURCES += src/txdb-leveldb.cpp \
 	src/bloom.cpp \
     src/hash.cpp \
-    src/obj/skunkhash/sph_skein.h \
-    src/obj/skunkhash/sph_types.h \
-    src/obj/skunkhash/sph_cubehash.h \
-    src/obj/skunkhash/sph_fugue.h \
+    src/obj/sonoA/sph_skein.h \
+    src/obj/sonoA/sph_types.h \
+    src/obj/sonoA/sph_cubehash.h \
+    src/obj/sonoA/sph_fugue.h \
+    src/obj/sonoA/sph_bmw.h \
+    src/obj/sonoA/sph_jh.h \
+    src/obj/sonoA/sph_keccak.h \
     src/qt/rpcexecutor.cpp \
     src/qt/forms/sidetoolbar.cpp
 
@@ -312,20 +315,26 @@ HEADERS += src/qt/bitcoingui.h \
     src/qt/qvalidatedtextedit.h \
     src/bloom.h \
     src/hashblock.h \ 
-    src/obj/skunkhash/sph_skein.h \
-    src/obj/skunkhash/sph_types.h \
-    src/obj/skunkhash/sph_cubehash.h \
-    src/obj/skunkhash/sph_fugue.h \
+    src/obj/sonoA/sph_skein.h \
+    src/obj/sonoA/sph_types.h \
+    src/obj/sonoA/sph_cubehash.h \
+    src/obj/sonoA/sph_fugue.h \
+    src/obj/sonoA/sph_bmw.h \
+    src/obj/sonoA/sph_jh.h \
+    src/obj/sonoA/sph_keccak.h \
     src/txdb-leveldb.h \
     src/qt/txviewdelegate.h \
     src/qt/rpcexecutor.h \
     src/qt/forms/sidetoolbar.h
 
 SOURCES += src/qt/bitcoin.cpp src/qt/bitcoingui.cpp \
-    src/obj/skunkhash/skein.c \
-    src/obj/skunkhash/cubehash.c \
-    src/obj/skunkhash/gost.c \
-    src/obj/skunkhash/fugue.c \
+    src/obj/sonoA/skein.c \
+    src/obj/sonoA/cubehash.c \
+    src/obj/sonoA/gost.c \
+    src/obj/sonoA/fugue.c \
+    src/obj/sonoA/bmw.c \
+    src/obj/sonoA/jh.c \
+    src/obj/sonoA/keccak.c \
     src/qt/transactiontablemodel.cpp \
     src/qt/addresstablemodel.cpp \
     src/qt/optionsdialog.cpp \

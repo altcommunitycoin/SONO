@@ -726,16 +726,12 @@ public:
 
     uint256 GetHash() const
     {
-        if (nVersion > 6)
-            return Hash(BEGIN(nVersion), END(nNonce));
-
-        else
-            return GetPoWHash();
+       return GetPoWHash();
     }
 
      uint256 GetPoWHash() const
     {
-        return SkunkHash5(BEGIN(nVersion), END(nNonce));
+        return sonoA(BEGIN(nVersion), END(nNonce));
     }
 
 
