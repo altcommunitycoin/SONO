@@ -98,21 +98,21 @@ public:
         genesis.hashPrevBlock = 0;
         genesis.hashMerkleRoot = genesis.BuildMerkleTree();
         genesis.nVersion = 1;
-        genesis.nTime    = 1522756800;
+        genesis.nTime    = 1504894760;
         genesis.nBits    = 0x1e0fffff;
-        genesis.nNonce   = 1133625;
+        genesis.nNonce   = 718550;
 
         hashGenesisBlock = genesis.GetHash();
-        assert(hashGenesisBlock == uint256("0x000002029848aa2a8bf58312ed4d36ddecf7cd25d6d8262a2f7954f5d4845400"));
+        assert(hashGenesisBlock == uint256("0x00000f14896ba98013ed07e0ecf6e29b360a20898aab5c23238fd08c17ac1b10"));
         assert(genesis.hashMerkleRoot == uint256("0xcdcd7108ef39db12a5e03b30ef2790ac6ffb65436ea0beeb4c83adb72d79625b"));
 
-    //    MineGenesis(genesis);
+        //MineGenesis(genesis);
 
         vSeeds.push_back(CDNSSeedData("seed1.projectsono.io", "seed1.projectsono.io"));
         vSeeds.push_back(CDNSSeedData("seed2.projectsono.io", "seed2.projectsono.io"));
         vSeeds.push_back(CDNSSeedData("seed3.projectsono.io", "seed3.projectsono.io"));
 
-        base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1, 63);
+        base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1, 23);
         base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1, 125);
         base58Prefixes[SECRET_KEY] =     std::vector<unsigned char>(1, (63+128));
         base58Prefixes[EXT_PUBLIC_KEY] = boost::assign::list_of(0x04)(0x88)(0xC2)(0x1E).convert_to_container<std::vector<unsigned char> >();
@@ -163,12 +163,12 @@ public:
         genesis.nVersion = 1;
         genesis.nTime    = 1504894760;
         genesis.nBits    = 0x1e0fffff;
-        genesis.nNonce   = 1041917;
+        genesis.nNonce   = 718550;
 
-  //      MineGenesis(genesis);
+//        MineGenesis(genesis);
 
         hashGenesisBlock = genesis.GetHash();
-        assert(hashGenesisBlock == uint256("0x000005ae79cc6309d0aa4c5f0c0bb8450baede49100e2ce84b46c36f66c937f6"));
+        assert(hashGenesisBlock == uint256("0x00000f14896ba98013ed07e0ecf6e29b360a20898aab5c23238fd08c17ac1b10"));
         assert(genesis.hashMerkleRoot == uint256("0xcdcd7108ef39db12a5e03b30ef2790ac6ffb65436ea0beeb4c83adb72d79625b"));
 
 

@@ -116,11 +116,8 @@ OBJS= \
     obj/skunkhash/cubehash.o \
     obj/skunkhash/aes_helper.o \
     obj/skunkhash/gost.o \
-    obj/skunkhash/skein.o \
-    obj/skunkhash/fugue.o \
-    obj/sonoA/bmw.o\
-    obj/sonoA/jh.o\
-    obj/sonoA/keccak.o
+    obj/skunkhash/skein.o\
+	obj/skunkhash/fugue.o
 
 ifeq (${USE_WALLET}, 1)
     DEFS += -DENABLE_WALLET
