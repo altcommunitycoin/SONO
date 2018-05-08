@@ -48,12 +48,12 @@ static const int64_t DARKSEND_POOL_MAX = (1999999.99*COIN);
 #define MASTERNODE_REMOTELY_ENABLED            9
 
 #define MASTERNODE_MIN_CONFIRMATIONS           7
-#define MASTERNODE_MIN_DSEEP_SECONDS           (30*60)
+#define MASTERNODE_MIN_DSEEP_SECONDS           (10*60)
 #define MASTERNODE_MIN_DSEE_SECONDS            (5*60)
 #define MASTERNODE_PING_SECONDS                (1*60) //(1*60)
 #define MASTERNODE_PING_WAIT_SECONDS           (5*60)
-#define MASTERNODE_EXPIRATION_SECONDS          (65*60) //Old 65*60
-#define MASTERNODE_REMOVAL_SECONDS             (70*60) //Old 70*60
+#define MASTERNODE_EXPIRATION_SECONDS          (120*60) //Old 65*60
+#define MASTERNODE_REMOVAL_SECONDS             (130*60) //Old 70*60
 
 
 class CBlock;

@@ -2170,8 +2170,10 @@ void ThreadCheckDarkSendPool()
             CleanTransactionLocksList();
         }
 
+        int mnRefresh = 90; //(5*5)
+
         //try to sync the masternode list and payment list every 5 seconds from at least 3 nodes
-        if(c % 5 == 0 && RequestedMasterNodeList < 3){
+        if(c % mnRefresh == 0 && RequestedMasterNodeList < 3){
             bool fIsInitialDownload = IsInitialBlockDownload();
             if(!fIsInitialDownload) {
                 LOCK(cs_vNodes);
