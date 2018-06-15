@@ -1136,14 +1136,23 @@ int64_t GetProofOfWorkReward(int64_t nFees)
 {
     int64_t nSubsidy = 1 * COIN;
 
-    if(pindexBest->nHeight <= 1) {
+    if(pindexBest->nHeight <= 1)
+    {
         nSubsidy = 65000 * COIN;
-    } else if(pindexBest->nHeight <= 250) {
+    }
+
+    else if(pindexBest->nHeight <= 250)
+    {
         nSubsidy = 0.01 * COIN;
-    } else if(pindexBest->nHeight >= 240000) {
+    }
+
+    else if(pindexBest->nHeight <= 395700)
+    {
         nSubsidy = 2 * COIN;
-    } else {
-        nSubsidy = 1 * COIN;
+    }
+    else
+    {
+        nSubsidy = 0.01 * COIN;
     }
 
     LogPrint("GetProofOfWorkReward() : create=%s", FormatMoney(nSubsidy).c_str(), nSubsidy);
@@ -1158,9 +1167,15 @@ int64_t GetProofOfStakeReward(const CBlockIndex* pindexPrev, int64_t nCoinAge, i
 
     nSubsidy = nCoinAge * COIN_YEAR_REWARD * 33 / (365 * 33 + 8);
 
-    if(pindexBest->nHeight >= 240000) {
+    if(pindexBest->nHeight <= 395700)
+    {
     nSubsidy = nCoinAge * COIN_YEAR_REWARD * 33 / (365 * 33 + 8) /180 * 50;
-}
+    }
+    else
+    {
+        nSubsidy = 0.00001 * COIN;
+    }
+
     LogPrint("creation", "GetProofOfStakeReward(): create=%s nCoinAge=%d\n", FormatMoney(nSubsidy), nCoinAge);
 
     return nSubsidy + nFees;
@@ -3582,7 +3597,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
          badVersion = true;
 
         // disconnect from old peers at height 268000. Make sure that only correct clients participate with MNv2
-        if (nBestHeight >= 268000 && pfrom->nVersion < 70010)
+        if (nBestHeight >= 395700 && pfrom->nVersion < 70013)
          badVersion = true;
 
         if (badVersion == true )

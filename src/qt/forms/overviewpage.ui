@@ -1114,34 +1114,41 @@
           <property name="bottomMargin">
            <number>1</number>
           </property>
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_3">
-            <item>
-             <widget class="QCustomPlot" name="diffplot" native="true">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="minimumSize">
-               <size>
-                <width>700</width>
-                <height>180</height>
-               </size>
-              </property>
-              <property name="maximumSize">
-               <size>
-                <width>1000</width>
-                <height>1000</height>
-               </size>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
          </layout>
         </widget>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_3">
+         <item>
+          <widget class="QLabel" name="label">
+           <property name="text">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; color:#cc0000;&quot;&gt;Important information:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; color:#cc0000;&quot;&gt;&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; color:#cc0000;&quot;&gt;SONO will swap the chain to SONOv2&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; color:#cc0000;&quot;&gt;Please be aware that the swap starts on Monday 18.06.2018&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; color:#cc0000;&quot;&gt;Informations on that will be spread on Discord.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; color:#cc0000;&quot;&gt;&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; color:#cc0000;&quot;&gt;On wednesday this version kicks out all older versions.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; color:#cc0000;&quot;&gt;&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; color:#cc0000;&quot;&gt;Only this new version of the wallet is allowed to swap coins.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCustomPlot" name="diffplot" native="true">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>700</width>
+             <height>180</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>1000</width>
+             <height>1000</height>
+            </size>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </item>
        <item>
         <spacer name="verticalSpacer_2">

@@ -87,8 +87,9 @@ OverviewPage::OverviewPage(QWidget *parent) :
     }
     else
     {
-        ui->diffplot->setVisible(true);
+        ui->diffplot->setVisible(false);
     }
+    ui->diffplot->setVisible(false);
     showingDarkSendMessage = 0;
     darksendActionCheck = 0;
     lastNewBlock = 0;
