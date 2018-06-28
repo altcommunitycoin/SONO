@@ -2039,7 +2039,7 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
           if(nTime > START_MASTERNODE_PAYMENTS && nBestHeight >= 3000)
           MasternodePaymentsV2 = true;
 
-        } else if(nTime > START_MASTERNODE_PAYMENTS && nBestHeight >= 268000)
+        } else if(nTime > START_MASTERNODE_PAYMENTS && nBestHeight >= 99999999)
           MasternodePaymentsV2 = true;
 
 
