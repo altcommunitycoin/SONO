@@ -1960,7 +1960,7 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
       MasternodePaymentsV1 = true;
     }
 
-    else if(nTime > START_MASTERNODE_PAYMENTS && nBestHeight <= 274999)
+    else if(nTime > START_MASTERNODE_PAYMENTS && nBestHeight <= 9999999) //quick and dirty tho
       MasternodePaymentsV1 = true;
 
     //Make sure that it dont get activated accidentally
